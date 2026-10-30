@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Call Closer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Single dark "on a call" world: phone-screen column, amber signal accent */
+  --bg: #0e1315;
+  --panel: #172023;
+  --line: #26333a;
+  --ink: #eef3f1;
+  --muted: #92a39f;
+  --accent: #f2a541;
+  --good: #4cc38a;
+  --bad: #ef6b5b;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.5 var(--body); }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.15; }
+.wrap { max-width: 480px; margin: 0 auto; padding: 20px 16px 40px; display: grid; gap: 18px; }
+.hidden { display: none !important; }
+.muted { color: var(--muted); }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Profile */
+.profile { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; display: grid; gap: 14px; }
+.prow { display: flex; align-items: center; gap: 14px; }
+.badge { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: #1a1205; font: 800 22px var(--display); flex: none; }
+.prow h1 { font-size: 24px; }
+.xpbar { height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.xpbar > i { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width .6s; }
+.xpmeta { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.skills { display: grid; gap: 8px; }
+.skill { display: grid; grid-template-columns: 92px 1fr 34px; align-items: center; gap: 10px; font-size: 14px; }
+.skill .bar { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.skill .bar i { display: block; height: 100%; background: var(--good); }
+.skill span:last-child { text-align: right; color: var(--muted); }
+
+.sectionhead { display: flex; justify-content: space-between; align-items: baseline; }
+.sectionhead h2 { font-size: 19px; }
+.calls { display: grid; gap: 10px; }
+.callcard { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; }
+.callcard:hover:not(:disabled) { border-color: var(--accent); }
+.callcard:disabled { opacity: .45; cursor: not-allowed; }
+.avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--line); display: grid; place-items: center; font: 800 16px var(--display); color: var(--accent); }
+.callcard b { display: block; }
+.callcard small { color: var(--muted); display: block; font-size: 13px; }
+.grade { font: 800 20px var(--display); color: var(--accent); min-width: 28px; text-align: center; }
+.lock { font-size: 12px; color: var(--muted); }
+
+.tips { background: transparent; border: 1px dashed var(--line); border-radius: 14px; padding: 14px; font-size: 14px; color: var(--muted); display: grid; gap: 6px; }
+.tips b { color: var(--ink); }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.ghost { background: transparent; border: 1px solid var(--line); border-radius: 99px; padding: 8px 14px; font-size: 14px; color: var(--muted); }
+.ghost[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+
+/* Call screen */
+.callhead { text-align: center; display: grid; gap: 6px; justify-items: center; padding-top: 10px; }
+.callhead .avatar { width: 76px; height: 76px; font-size: 26px; }
+.callhead h2 { font-size: 24px; }
+.status { font-size: 13px; color: var(--good); }
+.brief { background: var(--panel); border-radius: 12px; padding: 12px 14px; font-size: 14px; border-left: 3px solid var(--accent); }
+.meters { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.meter { font-size: 12px; color: var(--muted); display: grid; gap: 4px; }
+.meter .bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.meter .bar i { display: block; height: 100%; transition: width .5s, background .5s; }
+.bubble { background: var(--panel); border: 1px solid var(--line); border-radius: 18px 18px 18px 4px; padding: 14px 16px; font-size: 17px; }
+.bubble.me { border-radius: 18px 18px 4px 18px; background: #2a2416; border-color: #4a3c1d; justify-self: end; max-width: 92%; }
+.timer { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+.timer .bar { flex: 1; height: 4px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.timer .bar i { display: block; height: 100%; background: var(--accent); width: 100%; }
+.options { display: grid; gap: 10px; }
+.opt { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; font-size: 16px; }
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt:disabled { cursor: default; }
+.opt.best { border-color: var(--good); }
+.opt.bad { border-color: var(--bad); }
+.opt.dim { opacity: .4; }
+.feedback { border-radius: 14px; padding: 14px; font-size: 15px; display: grid; gap: 6px; background: var(--panel); border-left: 4px solid var(--muted); }
+.feedback.best { border-left-color: var(--good); }
+.feedback.good { border-left-color: var(--accent); }
+.feedback.bad { border-left-color: var(--bad); }
+.feedback .tag { font: 700 12px var(--body); letter-spacing: .06em; text-transform: uppercase; }
+.feedback.best .tag { color: var(--good); }
+.feedback.good .tag { color: var(--accent); }
+.feedback.bad .tag { color: var(--bad); }
+.primary { background: var(--accent); color: #1a1205; border: 0; border-radius: 99px; padding: 14px 20px; font-weight: 700; width: 100%; }
+.hangup { background: var(--bad); color: #fff; border: 0; border-radius: 99px; padding: 10px 18px; font-size: 14px; justify-self: center; }
+.saytip { font-size: 13px; color: var(--muted); text-align: center; }
+
+/* Results */
+.bigGrade { font: 800 96px/1 var(--display); color: var(--accent); text-align: center; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; }
+.stats div { background: var(--panel); border-radius: 12px; padding: 12px 6px; }
+.stats b { display: block; font: 800 22px var(--display); }
+.stats small { color: var(--muted); font-size: 12px; }
+.lessons { display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; }
+.lessons li { background: var(--panel); border-radius: 12px; padding: 12px 14px; font-size: 14px; }
+.lessons li b { color: var(--accent); }
+.levelup { text-align: center; background: var(--accent); color: #1a1205; border-radius: 14px; padding: 14px; font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<main id="home" class="wrap">
+  <section class="profile" aria-label="Your progress">
+    <div class="prow">
+      <div class="badge num" id="lvl">1</div>
+      <div>
+        <h1 id="title">Rookie Dialer</h1>
+        <div class="muted" style="font-size:14px" id="callsMade">0 calls completed</div>
+      </div>
+    </div>
+    <div>
+      <div class="xpbar"><i id="xpfill" style="width:0%"></i></div>
+      <div class="xpmeta num"><span id="xpnow">0 XP</span><span id="xpnext">150 to Level 2</span></div>
+    </div>
+    <div class="skills" id="skills"></div>
+  </section>
+
+  <div class="sectionhead"><h2>Incoming calls</h2><span class="muted" style="font-size:13px">Best grade</span></div>
+  <div class="calls" id="calls"></div>
+
+  <div class="tips">
+    <div><b>How it works.</b> Each call has 4 turns. You get 20 seconds to answer, like a real call. <b>Deal</b> tracks your client's outcome, <b>Trust</b> tracks the relationship. Both count.</div>
+    <div>After every pick, say your line out loud once. Reps on your voice are what carry over to real calls.</div>
+  </div>
+
+  <div class="row">
+    <button class="ghost" id="timerToggle" aria-pressed="true">20s timer: on</button>
+    <button class="ghost" id="voiceToggle" aria-pressed="false">Read lines aloud: off</button>
+    <button class="ghost" id="resetBtn">Reset progress</button>
+  </div>
+  <div id="resetConfirm" class="tips hidden">
+    <div>Erase your level, XP and grades on this device?</div>
+    <div class="row"><button class="ghost" id="resetYes">Yes, reset</button><button class="ghost" id="resetNo">Keep my progress</button></div>
+  </div>
+</main>
+
+<!-- CALL -->
+<main id="call" class="wrap hidden">
+  <div class="callhead">
+    <div class="avatar" id="cAv">MH</div>
+    <h2 id="cName">Marcus Hale</h2>
+    <div class="muted" id="cRole" style="font-size:14px"></div>
+    <div class="status num" id="cStatus">On call 0:00</div>
+  </div>
+  <div class="brief" id="cBrief"></div>
+  <div class="meters">
+    <div class="meter"><span>Deal <span class="num" id="dealV">50</span></span><div class="bar"><i id="dealBar"></i></div></div>
+    <div class="meter"><span>Trust <span class="num" id="trustV">50</span></span><div class="bar"><i id="trustBar"></i></div></div>
+  </div>
+  <div class="muted num" style="font-size:13px" id="turnLabel">Turn 1 of 4</div>
+  <div class="bubble" id="theirLine"></div>
+  <div class="timer" id="timerRow"><span class="num" id="timerNum">20s</span><div class="bar"><i id="timerBar"></i></div></div>
+  <div class="options" id="options"></div>
+  <div id="after" class="hidden" style="display:grid;gap:12px">
+    <div class="bubble me" id="myLine"></div>
+    <div class="saytip">Say that line out loud once before you continue.</div>
+    <div class="feedback" id="feedback"></div>
+    <button class="primary" id="nextBtn">Next</button>
+  </div>
+  <button class="hangup" id="hangBtn">Hang up</button>
+</main>
+
+<!-- RESULTS -->
+<main id="results" class="wrap hidden">
+  <div class="callhead"><div class="muted">Call ended with <span id="rName"></span></div></div>
+  <div class="bigGrade" id="rGrade">A</div>
+  <div style="text-align:center" id="rVerdict"></div>
+  <div class="stats">
+    <div><b class="num" id="rDeal">0</b><small>Deal</small></div>
+    <div><b class="num" id="rTrust">0</b><small>Trust</small></div>
+    <div><b class="num" id="rXP">0</b><small>XP earned</small></div>
+  </div>
+  <div id="rLevel" class="levelup hidden"></div>
+  <h2 style="font-size:19px">Your playbook from this call</h2>
+  <ul class="lessons" id="rLessons"></ul>
+  <button class="primary" id="retryBtn">Run this call again</button>
+  <button class="ghost" id="homeBtn" style="justify-self:center">Back to calls</button>
+</main>
+
+<script>
+const SKILLS = ["Rapport", "Listening", "Anchoring", "Composure", "Closing"];
+const LEVELS = [0, 150, 350, 600, 900, 1300, 1800, 2400, 3100, 4000];
+const TITLES = ["Rookie Dialer", "Phone Regular", "Steady Voice", "Deal Maker", "Closer", "Senior Closer", "Rainmaker", "Negotiator", "Master Negotiator", "Legend of the Line"];
+
+// q: best | good | bad.  d = deal change, r = trust change, s = skill trained
+const CALLS = [
+{
+  id: "lowball", lvl: 1, name: "Marcus Hale", init: "MH", role: "Buyer's agent, Keystone Realty",
+  title: "The Lowball Offer",
+  brief: "Your listing: 214 Elm St, listed at $485,000. Goal: get to $470k or better without losing a cash buyer.",
+  turns: [
+    { say: "Hey, Marcus with Keystone. My buyers love 214 Elm, but they're at $440,000. Cash, quick close. Can your sellers do that?",
+      opts: [
+        { t: "Cash is great to hear. $440 is a long way from $485 though. What's driving that number?", q: "best", d: 8, r: 6, s: "Listening", f: "You thanked them for the strength of the offer and asked an open \"what\" question. Now you learn their reasoning before you counter." },
+        { t: "No way. My sellers won't even look at that.", q: "bad", d: -2, r: -10, s: "Composure", f: "You shut the door before learning anything. Lowballs are often a test, so keep them talking." },
+        { t: "Let me run it by them. I'm sure they can come down some.", q: "bad", d: -12, r: 2, s: "Anchoring", f: "You just told the other side your sellers are flexible. That weakens your list price as an anchor." } ] },
+    { say: "Honestly? They saw Birch Ave sold for $450 and figure Elm is about the same.",
+      opts: [
+        { t: "Birch had the original kitchen and no garage. Elm's fully renovated with a two-car. The closest comp is Oak Ct at $479.", q: "best", d: 10, r: 2, s: "Anchoring", f: "You reframed their comp with specifics and put a better anchor on the table: $479." },
+        { t: "It sounds like they want to be sure they aren't overpaying.", q: "good", d: 4, r: 8, s: "Rapport", f: "A good label. It names their fear and builds trust. Follow it with facts next time to move the number too." },
+        { t: "Comps are comps, I guess.", q: "bad", d: -8, r: 0, s: "Anchoring", f: "You let a weak comp stand. Whoever defines the comps usually defines the price." } ] },
+    { say: "Okay, fair. What would it take to get this done?",
+      opts: [
+        { t: "If they come to $478 with the cash close, I'll take it to my sellers tonight.", q: "best", d: 10, r: 2, s: "Anchoring", f: "A specific, non-round number sounds researched, and you tied it to an action. Strong anchor." },
+        { t: "What's the most they can do?", q: "good", d: 3, r: 0, s: "Listening", f: "Not bad, but they asked you to name terms. That was your chance to anchor high." },
+        { t: "Make it $460 and we're done.", q: "bad", d: -6, r: 2, s: "Anchoring", f: "You negotiated against yourself. Their next offer will land between $440 and $460." } ] },
+    { say: "...Look, I think I can get them to $465. That's it.",
+      opts: [
+        { t: "(Pause.) $465 is a real move, thank you. Can they do $472 if my sellers give them the 21-day close and leave the washer and dryer?", q: "best", d: 8, r: 6, s: "Closing", f: "Silence, acknowledgement, then a trade. Give something only when you get something." },
+        { t: "Deal.", q: "good", d: -2, r: 4, s: "Closing", f: "You closed, but \"that's it\" is rarely it. One more trade likely gets you a few thousand more." },
+        { t: "Then we're done here.", q: "bad", d: -10, r: -12, s: "Composure", f: "You walked from a $465 cash offer on a $485 list. Your sellers would want to know about that." } ] }
+  ]
+},
+{
+  id: "commission", lvl: 1, name: "Linda Park", init: "LP", role: "Homeowner, listing interview follow-up",
+  title: "Commission Pushback",
+  brief: "Linda is choosing between you and a discount agent. Goal: win the listing without gutting your fee.",
+  turns: [
+    { say: "I talked to another agent who'll do it for 4%. You're at 6. Why should I pay you more?",
+      opts: [
+        { t: "Fair question. Before I answer, what matters most to you in this sale: your net, speed, or less hassle?", q: "best", d: 6, r: 8, s: "Listening", f: "You found out what she values before defending your price. Now your pitch can aim at it." },
+        { t: "Okay, I can match 4%.", q: "bad", d: -15, r: 2, s: "Composure", f: "Caving on the first push teaches her to push again, and it signals your fee was padded." },
+        { t: "You get what you pay for.", q: "bad", d: -2, r: -10, s: "Rapport", f: "True or not, it sounds defensive and a bit insulting to her intelligence." } ] },
+    { say: "My net, obviously. And I don't want it sitting for months.",
+      opts: [
+        { t: "My last ten listings sold in 9 days on average, at 101% of list. I'll show you how pricing and marketing cover the difference.", q: "best", d: 10, r: 4, s: "Anchoring", f: "Concrete proof tied directly to what she said she wants: net and speed." },
+        { t: "So you want to walk away with the most money, fast, and you're worried you're paying for nothing.", q: "good", d: 4, r: 8, s: "Rapport", f: "Good summary. She'll feel heard. Back it with proof to move the deal forward." },
+        { t: "Every agent says they'll sell fast.", q: "bad", d: -4, r: -2, s: "Anchoring", f: "You agreed that you sound like everyone else. Differentiate with numbers." } ] },
+    { say: "Okay, but 6% still feels like a lot.",
+      opts: [
+        { t: "If you sign today with a 90-day exclusive, I'll do 5.5% and cover a staging consult.", q: "best", d: 8, r: 5, s: "Closing", f: "Give to get. Your concession is small and bought you commitment and time." },
+        { t: "It is a big number. What would make it feel worth it to you?", q: "good", d: 5, r: 6, s: "Listening", f: "Good calibrated question. She'll tell you exactly what to sell." },
+        { t: "Fine, 5%.", q: "bad", d: -10, r: 2, s: "Composure", f: "A full point with nothing in return. That's thousands off your paycheck." } ] },
+    { say: "Hmm. Let me think about it and I'll call you back.",
+      opts: [
+        { t: "Of course. What's the one thing you'd need to hear to feel good saying yes today?", q: "best", d: 8, r: 4, s: "Closing", f: "You surfaced the real objection while she's still on the line." },
+        { t: "Sure, take your time!", q: "good", d: -4, r: 2, s: "Closing", f: "Polite, but \"I'll call you back\" often means the other agent calls first." },
+        { t: "This rate is only good until 5pm today.", q: "bad", d: -2, r: -10, s: "Rapport", f: "Fake deadlines feel like a sales trick and cost trust." } ] }
+  ]
+},
+{
+  id: "inspection", lvl: 2, name: "Dana Ruiz", init: "DR", role: "Buyer's agent, Northgate Homes",
+  title: "Inspection Repair Demands",
+  brief: "You represent the sellers. The buyer's inspection flagged the roof. Goal: keep the deal and keep any credit under $8,000.",
+  turns: [
+    { say: "Inspection's back. Roof's at end of life. My buyers want an $18,000 credit or they walk.",
+      opts: [
+        { t: "That's a big ask. Can you send me the inspector's roof page and any roofer estimate?", q: "best", d: 6, r: 4, s: "Listening", f: "You asked for evidence before reacting. Numbers without documents are just opening anchors." },
+        { t: "My sellers aren't paying for a new roof.", q: "bad", d: -4, r: -10, s: "Composure", f: "A hard no before you've seen the report pushes them toward walking." },
+        { t: "Okay, I'll tell my sellers $18k.", q: "bad", d: -12, r: 2, s: "Anchoring", f: "You accepted their anchor as the starting point." } ] },
+    { say: "The inspector says 2 to 3 years left. We don't have a roofer quote yet.",
+      opts: [
+        { t: "So it's working today, and its age was priced into a 20-year-old house. Let's get a real roofer quote before we talk numbers.", q: "best", d: 10, r: 2, s: "Anchoring", f: "You reframed \"end of life\" as \"working today\" and moved the talk to real numbers." },
+        { t: "It sounds like your buyers are nervous about a big bill right after closing.", q: "good", d: 4, r: 8, s: "Rapport", f: "Good label. Their fear is the real issue, and you named it." },
+        { t: "Two to three years? Then it's fine.", q: "bad", d: 2, r: -6, s: "Rapport", f: "Dismissive. You're right on the facts, but they'll dig in." } ] },
+    { say: "Okay, the quote came in: $14,500 for a full replacement.",
+      opts: [
+        { t: "The roof has a few good years left, so a fair share is partial. My sellers can do $6,000 toward closing costs.", q: "best", d: 8, r: 2, s: "Anchoring", f: "You gave a reason, then a number. Offering a closing-cost credit is often cheaper for sellers than repairs." },
+        { t: "Let's split it: $7,250.", q: "good", d: 3, r: 4, s: "Closing", f: "Fair, but you split before anchoring. Low first, then meet." },
+        { t: "We'll cover the $14,500.", q: "bad", d: -12, r: 4, s: "Anchoring", f: "Full price for a working roof. Your sellers paid for a new roof on the buyer's house." } ] },
+    { say: "They'll take $9,000. That's final.",
+      opts: [
+        { t: "How am I supposed to sell $9,000 to my sellers when the roof works fine today?", q: "best", d: 6, r: 4, s: "Composure", f: "A \"how\" question makes them solve your problem. Often the reply is a lower number." },
+        { t: "Meet at $7,500 and I'll get the amendment signed today.", q: "good", d: 5, r: 4, s: "Closing", f: "Solid trade: a lower number for speed and certainty." },
+        { t: "Then they can walk.", q: "bad", d: -6, r: -10, s: "Composure", f: "Over $1,500 you'd risk the whole sale and a relist." } ] }
+  ]
+},
+{
+  id: "fsbo", lvl: 3, name: "Frank Delgado", init: "FD", role: "For-sale-by-owner seller",
+  title: "The FSBO Cold Call",
+  brief: "Frank listed his house himself 3 weeks ago. Goal: book an in-person meeting.",
+  turns: [
+    { say: "Yeah? If you're an agent, I'm not interested. I'm saving the commission.",
+      opts: [
+        { t: "Totally get it, and I'm not calling to list it. Quick question: are you open to buyers who work with agents?", q: "best", d: 8, r: 8, s: "Rapport", f: "You lowered his guard and asked an easy question he can say yes to." },
+        { t: "Most FSBOs end up listing anyway.", q: "bad", d: -2, r: -12, s: "Rapport", f: "Telling him he'll fail is a fast way to get hung up on." },
+        { t: "Sorry to bother you.", q: "bad", d: -10, r: 0, s: "Composure", f: "The first no on a cold call is a reflex, not a decision." } ] },
+    { say: "Maybe. Depends what it costs me.",
+      opts: [
+        { t: "Fair. What's been the hardest part of selling it yourself so far?", q: "best", d: 8, r: 6, s: "Listening", f: "Let him tell you his pain in his own words." },
+        { t: "Usually 2.5 to 3% to the buyer's side.", q: "good", d: 2, r: -2, s: "Anchoring", f: "Honest and direct, but you're talking cost before value." },
+        { t: "Statistically you'd net more with an agent.", q: "bad", d: -2, r: -6, s: "Rapport", f: "Stats on a cold call sound like a pitch. He hasn't asked for one." } ] },
+    { say: "Honestly, the calls are all tire-kickers, and I've had two no-shows.",
+      opts: [
+        { t: "So you're doing all the work and getting people who aren't serious. That sounds exhausting.", q: "best", d: 6, r: 10, s: "Rapport", f: "A clean label. He feels understood by the person he expected to dislike." },
+        { t: "I could send you pre-qualified buyers.", q: "good", d: 4, r: 0, s: "Closing", f: "Useful, but you jumped to the solution before he felt heard." },
+        { t: "That's exactly why you need an agent.", q: "bad", d: -4, r: -8, s: "Rapport", f: "\"Told you so\" never books a meeting." } ] },
+    { say: "Yeah. It is.",
+      opts: [
+        { t: "Would it be crazy to grab 15 minutes Thursday? I'll bring a pricing report, no strings. If it's not useful, you've lost nothing.", q: "best", d: 10, r: 6, s: "Closing", f: "A question built for a \"no\" (\"would it be crazy\") feels safe to agree with. Small ask, clear value." },
+        { t: "Here's my number if you change your mind.", q: "good", d: -4, r: 2, s: "Closing", f: "Friendly, but you left without an appointment." },
+        { t: "So you'll sign with me?", q: "bad", d: -6, r: -8, s: "Closing", f: "Way too big a jump. Ask for the meeting, not the listing." } ] }
+  ]
+},
+{
+  id: "multi", lvl: 4, name: "Priya Shah", init: "PS", role: "Listing agent, Harbor & Main",
+  title: "Six Offers on the Table",
+  brief: "You represent the buyers. Goal: learn what the sellers value and get your offer chosen without overpaying.",
+  turns: [
+    { say: "We've got six offers. Best and final by 6 tonight. What do you need?",
+      opts: [
+        { t: "Thanks for taking the call. Besides price, what would make an offer stand out to your sellers?", q: "best", d: 10, r: 6, s: "Listening", f: "Most agents never ask. Terms often beat price." },
+        { t: "My buyers will go way over ask.", q: "bad", d: -8, r: 0, s: "Composure", f: "You showed your hand before learning anything." },
+        { t: "What's the highest offer so far?", q: "bad", d: -2, r: -4, s: "Rapport", f: "She can't ethically tell you, and now she thinks less of you." } ] },
+    { say: "Between us, they're buying a new build that won't be ready till mid-January. Timing matters.",
+      opts: [
+        { t: "That helps. My buyers can close in 30 days and offer a free rent-back until January 20th.", q: "best", d: 12, r: 6, s: "Closing", f: "You solved the sellers' real problem. That can be worth more than $10k in price." },
+        { t: "Got it, we'll put that in.", q: "good", d: 3, r: 2, s: "Closing", f: "Fine, but be specific. Concrete terms read as commitment." },
+        { t: "Everyone's flexible on timing.", q: "bad", d: -4, r: -2, s: "Listening", f: "She just gave you the key and you shrugged it off." } ] },
+    { say: "Love that. Are they waiving appraisal?",
+      opts: [
+        { t: "They'll cover up to a $10,000 appraisal gap, and I'll send proof of funds tonight.", q: "best", d: 10, r: 4, s: "Anchoring", f: "A capped, documented promise is stronger than a vague waiver and protects your buyers." },
+        { t: "I'd have to ask them.", q: "good", d: 0, r: -2, s: "Composure", f: "Honest, but know your buyers' limits before you call." },
+        { t: "They'll waive everything.", q: "bad", d: -10, r: 2, s: "Anchoring", f: "You exposed your clients to unlimited risk to win a bid." } ] },
+    { say: "Okay. Anything else I should know?",
+      opts: [
+        { t: "Just that we'll be easy to work with. Can I call you at 5:30 to confirm you have everything you need?", q: "best", d: 8, r: 6, s: "Rapport", f: "Listing agents pick partners they trust to close. A check-in shows that." },
+        { t: "Nope, we're good.", q: "good", d: 0, r: 0, s: "Closing", f: "Okay, but you missed one more chance to be memorable." },
+        { t: "Can you give me a heads-up if we're getting beat?", q: "bad", d: -4, r: -4, s: "Rapport", f: "You asked her to shop other offers. Most agents won't, and they'll remember you asked." } ] }
+  ]
+},
+{
+  id: "appraisal", lvl: 5, name: "Tom Becker", init: "TB", role: "Buyer's agent, Crestline Realty",
+  title: "The Low Appraisal",
+  brief: "Your listing went under contract at $520,000. It appraised at $505,000. Goal: save the deal above $510k.",
+  turns: [
+    { say: "Appraisal came in at $505. My buyers need the price at $505 or they'll use the appraisal contingency.",
+      opts: [
+        { t: "I saw it. Before we talk price, how are your buyers feeling about the house itself?", q: "best", d: 6, r: 8, s: "Listening", f: "If they love the house, they have room to bend. You found that out first." },
+        { t: "The appraiser got it wrong.", q: "bad", d: -2, r: -6, s: "Composure", f: "Maybe, but claims without comps go nowhere." },
+        { t: "Okay, I'll get them to $505.", q: "bad", d: -14, r: 2, s: "Anchoring", f: "$15,000 gone without a single counter." } ] },
+    { say: "They love it. They just don't want to overpay.",
+      opts: [
+        { t: "Makes sense. The appraiser left out 18 Pine, which sold for $527 last month. I'm filing a reconsideration of value with it.", q: "best", d: 10, r: 2, s: "Anchoring", f: "Evidence plus action. Now the price has support." },
+        { t: "Nobody wants to overpay.", q: "good", d: 0, r: 4, s: "Rapport", f: "Empathetic, but it moves nothing." },
+        { t: "Then they can find another house.", q: "bad", d: -6, r: -12, s: "Composure", f: "They love the house. Don't make them choose pride over it." } ] },
+    { say: "Even if that fails, what can your sellers do?",
+      opts: [
+        { t: "If it holds at $505, my sellers will meet them at $514 and your buyers cover the gap.", q: "best", d: 8, r: 4, s: "Anchoring", f: "A clear fallback that still anchors well above $510." },
+        { t: "Let's see what the reconsideration says first.", q: "good", d: 5, r: 0, s: "Composure", f: "Patient and fair. You kept your powder dry." },
+        { t: "Nothing.", q: "bad", d: -2, r: -8, s: "Rapport", f: "A flat no invites them to walk." } ] },
+    { say: "They can do $510. I need an answer by tomorrow.",
+      opts: [
+        { t: "I hear the deadline. $510 is close. If they meet at $512 and we push closing a week so my sellers' purchase lines up, I'll recommend it tonight.", q: "best", d: 8, r: 6, s: "Closing", f: "You respected their deadline and traded for something your sellers actually need." },
+        { t: "Done at $510.", q: "good", d: 2, r: 4, s: "Closing", f: "You hit the goal. A small trade could have squeezed out a bit more." },
+        { t: "Don't rush me.", q: "bad", d: -4, r: -8, s: "Composure", f: "Deadlines are normal. Pushing back on tone wastes goodwill." } ] }
+  ]
+}
+];
+
+// ---------- State ----------
+const KEY = "callCloser.v1";
+let S = { xp: 0, calls: 0, skills: {}, best: {}, timer: true, voice: false };
+SKILLS.forEach(k => S.skills[k] = 0);
+try { const saved = JSON.parse(localStorage.getItem(KEY)); if (saved) S = Object.assign(S, saved); } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+function levelOf(xp) { let l = 1; LEVELS.forEach((t, i) => { if (xp >= t) l = i + 1; }); return l; }
+const $ = id => document.getElementById(id);
+function show(id) { ["home", "call", "results"].forEach(x => $(x).classList.toggle("hidden", x !== id)); window.scrollTo(0, 0); }
+
+// ---------- Home ----------
+function renderHome() {
+  const lvl = levelOf(S.xp);
+  $("lvl").textContent = lvl;
+  $("title").textContent = TITLES[lvl - 1];
+  $("callsMade").textContent = S.calls + (S.calls === 1 ? " call" : " calls") + " completed";
+  const cur = LEVELS[lvl - 1], next = LEVELS[lvl];
+  $("xpnow").textContent = S.xp + " XP";
+  if (next === undefined) { $("xpfill").style.width = "100%"; $("xpnext").textContent = "Max level"; }
+  else { $("xpfill").style.width = ((S.xp - cur) / (next - cur) * 100) + "%"; $("xpnext").textContent = (next - S.xp) + " to Level " + (lvl + 1); }
+
+  $("skills").innerHTML = SKILLS.map(k => {
+    const v = S.skills[k] || 0, pct = Math.min(100, v);
+    return `<div class="skill"><span>${k}</span><div class="bar"><i style="width:${pct}%"></i></div><span class="num">${v}</span></div>`;
+  }).join("");
+
+  $("calls").innerHTML = CALLS.map(c => {
+    const locked = lvl < c.lvl, g = S.best[c.id];
+    return `<button class="callcard" data-id="${c.id}" ${locked ? "disabled" : ""}>
+      <div class="avatar">${c.init}</div>
+      <div><b>${c.title}</b><small>${c.name} · ${c.role}</small></div>
+      ${locked ? `<span class="lock">Level ${c.lvl}</span>` : `<span class="grade">${g || "–"}</span>`}
+    </button>`;
+  }).join("");
+  document.querySelectorAll(".callcard").forEach(b => b.onclick = () => startCall(b.dataset.id));
+
+  setToggle($("timerToggle"), S.timer, "20s timer");
+  setToggle($("voiceToggle"), S.voice, "Read lines aloud");
+}
+function setToggle(el, on, label) { el.setAttribute("aria-pressed", on); el.textContent = label + ": " + (on ? "on" : "off"); }
+
+$("timerToggle").onclick = () => { S.timer = !S.timer; save(); renderHome(); };
+$("voiceToggle").onclick = () => { S.voice = !S.voice; save(); renderHome(); if (S.voice) speak("Voice on."); };
+$("resetBtn").onclick = () => $("resetConfirm").classList.remove("hidden");
+$("resetNo").onclick = () => $("resetConfirm").classList.add("hidden");
+$("resetYes").onclick = () => {
+  S.xp = 0; S.calls = 0; S.best = {}; SKILLS.forEach(k => S.skills[k] = 0);
+  save(); $("resetConfirm").classList.add("hidden"); renderHome();
+};
+
+// ---------- Voice ----------
+function speak(text) {
+  if (!S.voice) return;
+  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 1.05; speechSynthesis.speak(u); } catch (e) {}
+}
+
+// ---------- Call ----------
+let C, turn, deal, trust, picks, clockInt, timerInt, seconds, startedAt;
+
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function clamp(v) { return Math.max(0, Math.min(100, v)); }
+
+function startCall(id) {
+  C = CALLS.find(c => c.id === id);
+  turn = 0; deal = 50; trust = 50; picks = [];
+  $("cAv").textContent = C.init; $("cName").textContent = C.name; $("cRole").textContent = C.role;
+  $("cBrief").textContent = C.brief;
+  startedAt = Date.now();
+  clearInterval(clockInt);
+  clockInt = setInterval(() => {
+    const s = Math.floor((Date.now() - startedAt) / 1000);
+    $("cStatus").textContent = "On call " + Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+  }, 1000);
+  $("cStatus").textContent = "On call 0:00";
+  show("call");
+  renderTurn();
+}
+
+function meters() {
+  $("dealV").textContent = deal; $("trustV").textContent = trust;
+  const col = v => v >= 70 ? "var(--good)" : v >= 45 ? "var(--accent)" : "var(--bad)";
+  $("dealBar").style.width = deal + "%"; $("dealBar").style.background = col(deal);
+  $("trustBar").style.width = trust + "%"; $("trustBar").style.background = col(trust);
+}
+
+function renderTurn() {
+  const T = C.turns[turn];
+  meters();
+  $("turnLabel").textContent = "Turn " + (turn + 1) + " of " + C.turns.length;
+  $("theirLine").textContent = "“" + T.say + "”";
+  $("after").classList.add("hidden");
+  const opts = shuffle(T.opts);
+  $("options").innerHTML = opts.map((o, i) => `<button class="opt" data-i="${i}">${o.t}</button>`).join("");
+  document.querySelectorAll(".opt").forEach(b => b.onclick = () => choose(opts[+b.dataset.i], b, opts));
+  speak(T.say);
+  startTimer(opts);
+}
+
+function startTimer(opts) {
+  clearInterval(timerInt);
+  $("timerRow").classList.toggle("hidden", !S.timer);
+  if (!S.timer) return;
+  seconds = 20;
+  $("timerNum").textContent = "20s"; $("timerBar").style.width = "100%";
+  timerInt = setInterval(() => {
+    seconds -= 0.1;
+    $("timerBar").style.width = Math.max(0, seconds / 20 * 100) + "%";
+    $("timerNum").textContent = Math.ceil(Math.max(0, seconds)) + "s";
+    if (seconds <= 0) { clearInterval(timerInt); choose(null, null, opts); }
+  }, 100);
+}
+
+function choose(o, btn, opts) {
+  clearInterval(timerInt);
+  document.querySelectorAll(".opt").forEach(b => {
+    b.disabled = true;
+    const ob = opts[+b.dataset.i];
+    if (ob.q === "best") b.classList.add("best");
+    else if (b === btn && ob.q === "bad") b.classList.add("bad");
+    else if (b !== btn) b.classList.add("dim");
+  });
+  let fb;
+  if (!o) {
+    o = { t: "(Dead air...)", q: "bad", d: -6, r: -4, s: "Composure", f: "You froze. On a real call, buy time with \"Good question, let me think about that for a second.\" Then answer." };
+  }
+  deal = clamp(deal + o.d); trust = clamp(trust + o.r);
+  picks.push(o);
+  meters();
+  const labels = { best: "Strong move", good: "Decent", bad: "Costly" };
+  const sign = n => (n > 0 ? "+" : "") + n;
+  $("myLine").textContent = o.t;
+  fb = $("feedback");
+  fb.className = "feedback " + o.q;
+  fb.innerHTML = `<span class="tag">${labels[o.q]} · ${o.s}</span><div>${o.f}</div><div class="muted num" style="font-size:13px">Deal ${sign(o.d)} · Trust ${sign(o.r)}</div>`;
+  $("after").classList.remove("hidden");
+  $("nextBtn").textContent = turn === C.turns.length - 1 ? "End call" : "Next";
+  $("nextBtn").focus({ preventScroll: true });
+  $("after").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+$("nextBtn").onclick = () => { turn++; if (turn < C.turns.length) { renderTurn(); window.scrollTo(0, 0); } else endCall(false); };
+$("hangBtn").onclick = () => endCall(true);
+
+// ---------- Results ----------
+function gradeOf(score) { return score >= 90 ? "S" : score >= 80 ? "A" : score >= 68 ? "B" : score >= 55 ? "C" : "D"; }
+const RANK = { S: 5, A: 4, B: 3, C: 2, D: 1 };
+
+function endCall(hungUp) {
+  clearInterval(timerInt); clearInterval(clockInt);
+  try { speechSynthesis.cancel(); } catch (e) {}
+  const beforeLvl = levelOf(S.xp);
+  let score = Math.round(deal * 0.6 + trust * 0.4);
+  if (hungUp) score = Math.min(score, 40);
+  const g = gradeOf(score);
+  const bestCount = picks.filter(p => p.q === "best").length;
+  const bonus = { S: 60, A: 35, B: 20, C: 5, D: 0 }[g];
+  const first = !S.best[C.id];
+  let xp = hungUp ? 10 : score + bonus + bestCount * 5 + (first ? 25 : 0);
+  if (S.timer && !hungUp) xp = Math.round(xp * 1.2);
+
+  picks.forEach(p => {
+    const gain = p.q === "best" ? 4 : p.q === "good" ? 2 : 0;
+    S.skills[p.s] = (S.skills[p.s] || 0) + gain;
+  });
+  S.xp += xp;
+  if (!hungUp) S.calls++;
+  if (!hungUp && (!S.best[C.id] || RANK[g] > RANK[S.best[C.id]])) S.best[C.id] = g;
+  save();
+
+  $("rName").textContent = C.name;
+  $("rGrade").textContent = g;
+  $("rVerdict").textContent = hungUp ? "You hung up early. The deal went cold." :
+    { S: "Textbook. You protected your client and they'd call you again.", A: "Strong call. One or two moves left money on the table.",
+      B: "Solid. Tighten your anchors and trades.", C: "You kept it alive, but the other side ran the call.", D: "Rough one. Run it again and try the moves in your playbook." }[g];
+  $("rDeal").textContent = deal; $("rTrust").textContent = trust; $("rXP").textContent = "+" + xp;
+
+  const afterLvl = levelOf(S.xp);
+  const lv = $("rLevel");
+  if (afterLvl > beforeLvl) {
+    const unlocked = CALLS.filter(c => c.lvl > beforeLvl && c.lvl <= afterLvl).map(c => c.title);
+    lv.textContent = "Level " + afterLvl + ": " + TITLES[afterLvl - 1] + (unlocked.length ? ". New call unlocked: " + unlocked.join(", ") : "");
+    lv.classList.remove("hidden");
+  } else lv.classList.add("hidden");
+
+  const lessons = C.turns.map((T, i) => {
+    const best = T.opts.find(o => o.q === "best");
+    const mine = picks[i];
+    if (!mine) return "";
+    const nailed = mine.q === "best";
+    return `<li><b>Turn ${i + 1} · ${best.s}</b><br>${nailed ? "You nailed it: " : "Stronger line: "}“${best.t}”</li>`;
+  }).join("");
+  $("rLessons").innerHTML = lessons || "<li>Finish a call to build your playbook.</li>";
+  show("results");
+}
+
+$("retryBtn").onclick = () => startCall(C.id);
+$("homeBtn").onclick = () => { renderHome(); show("home"); };
+
+renderHome();
+</script>
+</body>
+</html>
