@@ -6,147 +6,203 @@
 <title>Call Closer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  /* Single dark "on a call" world: phone-screen column, amber signal accent */
-  --bg: #0e1315;
-  --panel: #172023;
-  --line: #26333a;
-  --ink: #eef3f1;
-  --muted: #92a39f;
-  --accent: #f2a541;
-  --good: #4cc38a;
-  --bad: #ef6b5b;
-  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  /* Single dark "system window" world: glowing blue panels, gold for level-ups */
+  --bg: #060a13;
+  --panel: #0b1628;
+  --line: #1e3a66;
+  --ink: #e6efff;
+  --muted: #8aa1c2;
+  --accent: #4fb3ff;
+  --gold: #ffc857;
+  --good: #46d39a;
+  --bad: #ff5d73;
+  --glow: 0 0 0 1px var(--line), 0 0 22px rgba(79,179,255,.18);
+  --display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
   --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
-body { background: var(--bg); color: var(--ink); font: 16px/1.5 var(--body); }
-button { font: inherit; color: inherit; cursor: pointer; }
-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.15; }
-.wrap { max-width: 480px; margin: 0 auto; padding: 20px 16px 40px; display: grid; gap: 18px; }
+body { background: radial-gradient(ellipse at top, #0d1d38 0%, var(--bg) 55%) fixed, var(--bg); color: var(--ink); font: 16px/1.5 var(--body); }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.15; letter-spacing: .02em; }
+.wrap { max-width: 480px; margin: 0 auto; padding: 20px 16px 48px; display: grid; gap: 18px; }
 .hidden { display: none !important; }
 .muted { color: var(--muted); }
 .num { font-variant-numeric: tabular-nums; }
 
-/* Profile */
-.profile { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px; display: grid; gap: 14px; }
-.prow { display: flex; align-items: center; gap: 14px; }
-.badge { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: #1a1205; font: 800 22px var(--display); flex: none; }
-.prow h1 { font-size: 24px; }
-.xpbar { height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; }
-.xpbar > i { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width .6s; }
-.xpmeta { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
-.skills { display: grid; gap: 8px; }
-.skill { display: grid; grid-template-columns: 92px 1fr 34px; align-items: center; gap: 10px; font-size: 14px; }
-.skill .bar { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
-.skill .bar i { display: block; height: 100%; background: var(--good); }
-.skill span:last-child { text-align: right; color: var(--muted); }
+/* System window */
+.win { background: linear-gradient(180deg, rgba(14,30,56,.92), rgba(9,18,34,.92)); border-radius: 6px; box-shadow: var(--glow); padding: 16px; display: grid; gap: 12px; position: relative; }
+.win::before, .win::after { content: ""; position: absolute; width: 14px; height: 14px; border-color: var(--accent); border-style: solid; }
+.win::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+.win::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+.wintag { font: 700 12px var(--display); letter-spacing: .22em; color: var(--accent); text-transform: uppercase; display: flex; justify-content: space-between; }
 
+/* Status */
+.head { display: grid; grid-template-columns: 64px 1fr auto; gap: 12px; align-items: center; }
+.rank { width: 64px; height: 64px; border: 2px solid currentColor; border-radius: 6px; display: grid; place-items: center; font: 700 34px var(--display); box-shadow: 0 0 16px currentColor inset; }
+.nameIn { background: transparent; border: 0; border-bottom: 1px dashed var(--line); font: 700 20px var(--display); width: 100%; padding: 0 0 2px; }
+.titleLine { font-size: 13px; color: var(--gold); }
+.lv { text-align: right; font-family: var(--display); }
+.lv b { display: block; font-size: 28px; line-height: 1; }
+.lv small { color: var(--muted); font-size: 11px; letter-spacing: .15em; }
+.xpbar { height: 8px; background: #0a1322; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; }
+.xpbar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), #9fd6ff); box-shadow: 0 0 10px var(--accent); transition: width .6s; }
+.xpmeta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+.stats { display: grid; gap: 2px; }
+.stat { display: grid; grid-template-columns: 44px 1fr 40px 34px; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid rgba(30,58,102,.5); }
+.stat abbr { font: 700 14px var(--display); color: var(--accent); text-decoration: none; }
+.stat .nm { font-size: 14px; }
+.stat .nm small { display: block; color: var(--muted); font-size: 12px; line-height: 1.3; }
+.stat .v { font: 700 18px var(--display); text-align: right; }
+.plus { width: 30px; height: 30px; border-radius: 4px; border: 1px solid var(--gold); background: transparent; color: var(--gold); font-weight: 700; }
+.plus:disabled { visibility: hidden; }
+.points { font-size: 13px; color: var(--gold); }
+
+/* Quest */
+.quest { display: grid; gap: 6px; font-size: 15px; }
+.quest div { display: flex; justify-content: space-between; }
+.quest .done { color: var(--good); }
+.questReward { font-size: 12px; color: var(--muted); }
+
+/* Gates */
 .sectionhead { display: flex; justify-content: space-between; align-items: baseline; }
-.sectionhead h2 { font-size: 19px; }
-.calls { display: grid; gap: 10px; }
-.callcard { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; }
-.callcard:hover:not(:disabled) { border-color: var(--accent); }
-.callcard:disabled { opacity: .45; cursor: not-allowed; }
-.avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--line); display: grid; place-items: center; font: 800 16px var(--display); color: var(--accent); }
-.callcard b { display: block; }
-.callcard small { color: var(--muted); display: block; font-size: 13px; }
-.grade { font: 800 20px var(--display); color: var(--accent); min-width: 28px; text-align: center; }
-.lock { font-size: 12px; color: var(--muted); }
-
-.tips { background: transparent; border: 1px dashed var(--line); border-radius: 14px; padding: 14px; font-size: 14px; color: var(--muted); display: grid; gap: 6px; }
-.tips b { color: var(--ink); }
+.sectionhead h2 { font-size: 18px; text-transform: uppercase; letter-spacing: .08em; }
+.list { display: grid; gap: 10px; }
+.card { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px; display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; }
+.card:hover:not(:disabled) { border-color: var(--accent); box-shadow: 0 0 14px rgba(79,179,255,.25); }
+.card:disabled { opacity: .4; cursor: not-allowed; }
+.card b { display: block; font-family: var(--display); }
+.card small { color: var(--muted); display: block; font-size: 13px; }
+.gr { width: 40px; height: 40px; border: 1.5px solid currentColor; border-radius: 4px; display: grid; place-items: center; font: 700 18px var(--display); }
+.grade { font: 700 20px var(--display); color: var(--gold); min-width: 28px; text-align: center; }
+.lock { font-size: 12px; color: var(--muted); text-align: right; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; font-size: 13px; color: var(--muted); }
+.chip[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); }
+.chip:disabled { opacity: .35; cursor: default; }
 .row { display: flex; gap: 10px; flex-wrap: wrap; }
-.ghost { background: transparent; border: 1px solid var(--line); border-radius: 99px; padding: 8px 14px; font-size: 14px; color: var(--muted); }
+.ghost { background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 8px 12px; font-size: 13px; color: var(--muted); }
 .ghost[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
 
-/* Call screen */
-.callhead { text-align: center; display: grid; gap: 6px; justify-items: center; padding-top: 10px; }
-.callhead .avatar { width: 76px; height: 76px; font-size: 26px; }
-.callhead h2 { font-size: 24px; }
+/* Call + drill */
+.callhead { text-align: center; display: grid; gap: 4px; justify-items: center; padding-top: 6px; }
+.callhead .gr { width: 64px; height: 64px; font-size: 28px; }
+.callhead h2 { font-size: 22px; }
 .status { font-size: 13px; color: var(--good); }
-.brief { background: var(--panel); border-radius: 12px; padding: 12px 14px; font-size: 14px; border-left: 3px solid var(--accent); }
+.brief { background: var(--panel); border-radius: 4px; padding: 12px 14px; font-size: 14px; border-left: 3px solid var(--accent); }
 .meters { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .meter { font-size: 12px; color: var(--muted); display: grid; gap: 4px; }
-.meter .bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.meter .bar { height: 8px; background: #0a1322; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; }
 .meter .bar i { display: block; height: 100%; transition: width .5s, background .5s; }
-.bubble { background: var(--panel); border: 1px solid var(--line); border-radius: 18px 18px 18px 4px; padding: 14px 16px; font-size: 17px; }
-.bubble.me { border-radius: 18px 18px 4px 18px; background: #2a2416; border-color: #4a3c1d; justify-self: end; max-width: 92%; }
+.bubble { background: var(--panel); border: 1px solid var(--line); border-radius: 14px 14px 14px 2px; padding: 14px 16px; font-size: 17px; }
+.bubble mark { background: rgba(255,93,115,.18); color: var(--ink); border-bottom: 2px solid var(--bad); padding: 0 2px; }
+.bubble.me { border-radius: 14px 14px 2px 14px; background: #0f2440; border-color: #2a5288; justify-self: end; max-width: 92%; }
 .timer { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
-.timer .bar { flex: 1; height: 4px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.timer .bar { flex: 1; height: 4px; background: #0a1322; border-radius: 2px; overflow: hidden; }
 .timer .bar i { display: block; height: 100%; background: var(--accent); width: 100%; }
 .options { display: grid; gap: 10px; }
-.opt { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; font-size: 16px; }
+.opt { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px; font-size: 16px; }
 .opt:hover:not(:disabled) { border-color: var(--accent); }
 .opt:disabled { cursor: default; }
 .opt.best { border-color: var(--good); }
 .opt.bad { border-color: var(--bad); }
-.opt.dim { opacity: .4; }
-.feedback { border-radius: 14px; padding: 14px; font-size: 15px; display: grid; gap: 6px; background: var(--panel); border-left: 4px solid var(--muted); }
+.opt.dim { opacity: .35; }
+.feedback { border-radius: 6px; padding: 14px; font-size: 15px; display: grid; gap: 6px; background: var(--panel); border-left: 4px solid var(--muted); }
 .feedback.best { border-left-color: var(--good); }
-.feedback.good { border-left-color: var(--accent); }
+.feedback.good { border-left-color: var(--gold); }
 .feedback.bad { border-left-color: var(--bad); }
-.feedback .tag { font: 700 12px var(--body); letter-spacing: .06em; text-transform: uppercase; }
+.feedback .tag { font: 700 12px var(--display); letter-spacing: .12em; text-transform: uppercase; }
 .feedback.best .tag { color: var(--good); }
-.feedback.good .tag { color: var(--accent); }
+.feedback.good .tag { color: var(--gold); }
 .feedback.bad .tag { color: var(--bad); }
-.primary { background: var(--accent); color: #1a1205; border: 0; border-radius: 99px; padding: 14px 20px; font-weight: 700; width: 100%; }
-.hangup { background: var(--bad); color: #fff; border: 0; border-radius: 99px; padding: 10px 18px; font-size: 14px; justify-self: center; }
+.primary { background: var(--accent); color: #04101f; border: 0; border-radius: 4px; padding: 14px 20px; font: 700 16px var(--display); letter-spacing: .06em; width: 100%; box-shadow: 0 0 18px rgba(79,179,255,.35); }
+.hangup { background: transparent; color: var(--bad); border: 1px solid var(--bad); border-radius: 4px; padding: 8px 16px; font-size: 14px; justify-self: center; }
 .saytip { font-size: 13px; color: var(--muted); text-align: center; }
+.after { display: grid; gap: 12px; }
+.insight { justify-self: start; background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 6px 12px; font-size: 13px; }
 
 /* Results */
-.bigGrade { font: 800 96px/1 var(--display); color: var(--accent); text-align: center; }
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; }
-.stats div { background: var(--panel); border-radius: 12px; padding: 12px 6px; }
-.stats b { display: block; font: 800 22px var(--display); }
-.stats small { color: var(--muted); font-size: 12px; }
+.bigGrade { font: 700 96px/1 var(--display); color: var(--gold); text-align: center; text-shadow: 0 0 30px rgba(255,200,87,.5); }
+.rstats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; }
+.rstats div { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 12px 6px; }
+.rstats b { display: block; font: 700 22px var(--display); }
+.rstats small { color: var(--muted); font-size: 12px; }
 .lessons { display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; }
-.lessons li { background: var(--panel); border-radius: 12px; padding: 12px 14px; font-size: 14px; }
-.lessons li b { color: var(--accent); }
-.levelup { text-align: center; background: var(--accent); color: #1a1205; border-radius: 14px; padding: 14px; font-weight: 700; }
+.lessons li { background: var(--panel); border-radius: 4px; padding: 12px 14px; font-size: 14px; }
+.lessons li b { color: var(--accent); font-family: var(--display); }
 
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+/* System popup */
+.overlay { position: fixed; inset: 0; background: rgba(3,6,12,.9); display: grid; place-items: center; padding: 16px; z-index: 10; }
+.overlay .win { background: #0c1a30; width: min(420px, 100%); text-align: center; animation: pop .35s ease-out; }
+.overlay h3 { font-size: 24px; color: var(--gold); text-shadow: 0 0 18px rgba(255,200,87,.45); }
+.overlay p { margin: 0; }
+@keyframes pop { from { transform: scale(.92); opacity: .4; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
 <body>
 
+<div id="sys" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="sysTitle">
+  <div class="win">
+    <div class="wintag"><span>[ System ]</span><span id="sysCount"></span></div>
+    <h3 id="sysTitle"></h3>
+    <p id="sysBody"></p>
+    <button class="primary" id="sysOk">Confirm</button>
+  </div>
+</div>
+
 <!-- HOME -->
 <main id="home" class="wrap">
-  <section class="profile" aria-label="Your progress">
-    <div class="prow">
-      <div class="badge num" id="lvl">1</div>
+  <section class="win" aria-label="Status">
+    <div class="wintag"><span>Status</span><span id="totalXp" class="num"></span></div>
+    <div class="head">
+      <div class="rank" id="rank">E</div>
       <div>
-        <h1 id="title">Rookie Dialer</h1>
-        <div class="muted" style="font-size:14px" id="callsMade">0 calls completed</div>
+        <label for="nameIn" class="muted" style="font-size:11px;letter-spacing:.15em">PLAYER</label>
+        <input class="nameIn" id="nameIn" maxlength="20" value="Hunter">
+        <div class="titleLine" id="titleLine">Title: none yet</div>
       </div>
+      <div class="lv"><small>LEVEL</small><b class="num" id="lvl">1</b></div>
     </div>
     <div>
       <div class="xpbar"><i id="xpfill" style="width:0%"></i></div>
-      <div class="xpmeta num"><span id="xpnow">0 XP</span><span id="xpnext">150 to Level 2</span></div>
+      <div class="xpmeta num"><span id="xpnow"></span><span id="rankNext"></span></div>
     </div>
-    <div class="skills" id="skills"></div>
+    <div class="points num" id="points"></div>
+    <div class="stats" id="stats"></div>
   </section>
 
-  <div class="sectionhead"><h2>Incoming calls</h2><span class="muted" style="font-size:13px">Best grade</span></div>
-  <div class="calls" id="calls"></div>
+  <section class="win" aria-label="Daily quest">
+    <div class="wintag"><span>Daily Quest</span><span id="streak" class="num"></span></div>
+    <div class="quest num" id="quest"></div>
+    <div class="questReward">Reward: +120 XP and +2 stat points. Resets at midnight.</div>
+  </section>
 
-  <div class="tips">
-    <div><b>How it works.</b> Each call has 4 turns. You get 20 seconds to answer, like a real call. <b>Deal</b> tracks your client's outcome, <b>Trust</b> tracks the relationship. Both count.</div>
-    <div>After every pick, say your line out loud once. Reps on your voice are what carry over to real calls.</div>
+  <div class="sectionhead"><h2>Gates</h2><span class="muted" style="font-size:13px">Live calls · best grade</span></div>
+  <div class="list" id="gates"></div>
+
+  <div class="sectionhead"><h2>Training</h2><span class="muted" style="font-size:13px">Quick drills</span></div>
+  <div class="list">
+    <button class="card" id="vocabBtn"><div class="gr" style="color:var(--accent)">V</div><div><b>Vocabulary Drill</b><small>8 rounds. Swap weak words for strong ones. Trains VOC.</small></div><span class="grade" id="vocabBest">–</span></button>
+    <button class="card" id="objBtn"><div class="gr" style="color:var(--accent)">H</div><div><b>Objection Gauntlet</b><small>6 rapid objections on a timer. Trains HDL.</small></div><span class="grade" id="objBest">–</span></button>
   </div>
 
+  <div class="sectionhead"><h2>Titles</h2><span class="muted" style="font-size:13px">Tap to equip</span></div>
+  <div class="chips" id="titles"></div>
+
   <div class="row">
-    <button class="ghost" id="timerToggle" aria-pressed="true">20s timer: on</button>
+    <button class="ghost" id="timerToggle" aria-pressed="true">Call timer: on</button>
     <button class="ghost" id="voiceToggle" aria-pressed="false">Read lines aloud: off</button>
     <button class="ghost" id="resetBtn">Reset progress</button>
   </div>
-  <div id="resetConfirm" class="tips hidden">
-    <div>Erase your level, XP and grades on this device?</div>
+  <div id="resetConfirm" class="win hidden">
+    <div>Erase your level, stats, titles and grades on this device?</div>
     <div class="row"><button class="ghost" id="resetYes">Yes, reset</button><button class="ghost" id="resetNo">Keep my progress</button></div>
   </div>
 </main>
@@ -154,8 +210,8 @@ h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-he
 <!-- CALL -->
 <main id="call" class="wrap hidden">
   <div class="callhead">
-    <div class="avatar" id="cAv">MH</div>
-    <h2 id="cName">Marcus Hale</h2>
+    <div class="gr" id="cRank">E</div>
+    <h2 id="cName"></h2>
     <div class="muted" id="cRole" style="font-size:14px"></div>
     <div class="status num" id="cStatus">On call 0:00</div>
   </div>
@@ -164,11 +220,14 @@ h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-he
     <div class="meter"><span>Deal <span class="num" id="dealV">50</span></span><div class="bar"><i id="dealBar"></i></div></div>
     <div class="meter"><span>Trust <span class="num" id="trustV">50</span></span><div class="bar"><i id="trustBar"></i></div></div>
   </div>
-  <div class="muted num" style="font-size:13px" id="turnLabel">Turn 1 of 4</div>
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <span class="muted num" style="font-size:13px" id="turnLabel"></span>
+    <button class="insight hidden" id="insightBtn"></button>
+  </div>
   <div class="bubble" id="theirLine"></div>
-  <div class="timer" id="timerRow"><span class="num" id="timerNum">20s</span><div class="bar"><i id="timerBar"></i></div></div>
+  <div class="timer" id="timerRow"><span class="num" id="timerNum"></span><div class="bar"><i id="timerBar"></i></div></div>
   <div class="options" id="options"></div>
-  <div id="after" class="hidden" style="display:grid;gap:12px">
+  <div id="after" class="after hidden">
     <div class="bubble me" id="myLine"></div>
     <div class="saytip">Say that line out loud once before you continue.</div>
     <div class="feedback" id="feedback"></div>
@@ -177,29 +236,42 @@ h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-he
   <button class="hangup" id="hangBtn">Hang up</button>
 </main>
 
+<!-- DRILL -->
+<main id="drill" class="wrap hidden">
+  <div class="callhead">
+    <div class="gr" style="color:var(--accent)" id="dIcon">V</div>
+    <h2 id="dTitle"></h2>
+    <div class="muted num" id="dProgress" style="font-size:14px"></div>
+  </div>
+  <div class="muted" id="dPrompt" style="font-size:14px"></div>
+  <div class="bubble" id="dLine"></div>
+  <div class="timer" id="dTimerRow"><span class="num" id="dTimerNum"></span><div class="bar"><i id="dTimerBar"></i></div></div>
+  <div class="options" id="dOptions"></div>
+  <div id="dAfter" class="after hidden">
+    <div class="feedback" id="dFeedback"></div>
+    <button class="primary" id="dNext">Next</button>
+  </div>
+  <button class="hangup" id="dQuit">Quit drill</button>
+</main>
+
 <!-- RESULTS -->
 <main id="results" class="wrap hidden">
-  <div class="callhead"><div class="muted">Call ended with <span id="rName"></span></div></div>
+  <div class="callhead"><div class="wintag" style="justify-content:center"><span id="rHead">Gate cleared</span></div></div>
   <div class="bigGrade" id="rGrade">A</div>
   <div style="text-align:center" id="rVerdict"></div>
-  <div class="stats">
-    <div><b class="num" id="rDeal">0</b><small>Deal</small></div>
-    <div><b class="num" id="rTrust">0</b><small>Trust</small></div>
+  <div class="rstats">
+    <div><b class="num" id="rA">0</b><small id="rAl">Deal</small></div>
+    <div><b class="num" id="rB">0</b><small id="rBl">Trust</small></div>
     <div><b class="num" id="rXP">0</b><small>XP earned</small></div>
   </div>
-  <div id="rLevel" class="levelup hidden"></div>
-  <h2 style="font-size:19px">Your playbook from this call</h2>
+  <div class="win"><div class="wintag"><span>Stats gained</span></div><div id="rGains" class="num"></div></div>
+  <h2 style="font-size:18px;text-transform:uppercase;letter-spacing:.08em" id="rLessonHead">Your playbook</h2>
   <ul class="lessons" id="rLessons"></ul>
-  <button class="primary" id="retryBtn">Run this call again</button>
-  <button class="ghost" id="homeBtn" style="justify-self:center">Back to calls</button>
+  <button class="primary" id="retryBtn">Run it again</button>
+  <button class="ghost" id="homeBtn" style="justify-self:center">Back to status</button>
 </main>
 
 <script>
-const SKILLS = ["Rapport", "Listening", "Anchoring", "Composure", "Closing"];
-const LEVELS = [0, 150, 350, 600, 900, 1300, 1800, 2400, 3100, 4000];
-const TITLES = ["Rookie Dialer", "Phone Regular", "Steady Voice", "Deal Maker", "Closer", "Senior Closer", "Rainmaker", "Negotiator", "Master Negotiator", "Legend of the Line"];
-
-// q: best | good | bad.  d = deal change, r = trust change, s = skill trained
 const CALLS = [
 {
   id: "lowball", lvl: 1, name: "Marcus Hale", init: "MH", role: "Buyer's agent, Keystone Realty",
@@ -365,74 +437,205 @@ const CALLS = [
 }
 ];
 
+// ---------- Gate setup ----------
+const GATE = {
+  lowball:    { lvl: 1,  rank: "E", focus: "HDL" },
+  commission: { lvl: 1,  rank: "E", focus: "HDL" },
+  inspection: { lvl: 3,  rank: "D", focus: "HDL" },
+  fsbo:       { lvl: 6,  rank: "C", focus: "RAP" },
+  multi:      { lvl: 10, rank: "B", focus: "LST" },
+  appraisal:  { lvl: 15, rank: "A", focus: "ANC" }
+};
+CALLS.forEach(c => Object.assign(c, GATE[c.id]));
+const SKILL_KEY = { Rapport: "RAP", Listening: "LST", Anchoring: "ANC", Composure: "CMP", Closing: "CLS" };
+
+// ---------- Stats, ranks, titles ----------
+const STATS = [
+  { k: "VOC", n: "Vocabulary", fx: s => `+${bonus(s, 5)} XP per correct vocab answer` },
+  { k: "HDL", n: "Handling",   fx: s => `+${bonus(s, 5)}s on objection timer, +${bonus(s, 5)} XP each` },
+  { k: "RAP", n: "Rapport",    fx: s => `Calls start with +${Math.min(10, bonus(s, 5))} Trust` },
+  { k: "LST", n: "Listening",  fx: s => `${Math.min(3, bonus(s, 10))} Insight per call (removes a bad answer)` },
+  { k: "ANC", n: "Anchoring",  fx: s => `Calls start with +${Math.min(10, bonus(s, 5))} Deal` },
+  { k: "CMP", n: "Composure",  fx: s => `Call timer ${Math.min(30, 20 + bonus(s, 5))}s` },
+  { k: "CLS", n: "Closing",    fx: s => `+${Math.min(50, s - 10)}% XP from calls` }
+];
+function bonus(s, per) { return Math.max(0, Math.floor((s - 10) / per)); }
+const RANKS = [ { r: "E", at: 1, c: "#9aa7b8" }, { r: "D", at: 3, c: "#46d39a" }, { r: "C", at: 6, c: "#4fb3ff" },
+                { r: "B", at: 10, c: "#b38cff" }, { r: "A", at: 15, c: "#ff9b45" }, { r: "S", at: 25, c: "#ffc857" } ];
+function rankOf(l) { let x = RANKS[0]; RANKS.forEach(r => { if (l >= r.at) x = r; }); return x; }
+function rankColor(letter) { return RANKS.find(r => r.r === letter).c; }
+function need(l) { return 100 + 25 * l; }
+
+const TITLE_LIST = [
+  { id: "first",   n: "First Dial",       how: "Clear your first gate",              ok: () => S.calls >= 1 },
+  { id: "silver",  n: "Silver Tongue",    how: "Reach 25 Vocabulary",                ok: () => S.stats.VOC >= 25 },
+  { id: "wall",    n: "Wall Breaker",     how: "Reach 25 Handling",                  ok: () => S.stats.HDL >= 25 },
+  { id: "trusted", n: "Trusted Voice",    how: "Reach 25 Rapport",                   ok: () => S.stats.RAP >= 25 },
+  { id: "ear",     n: "Sharp Ear",        how: "Reach 25 Listening",                 ok: () => S.stats.LST >= 25 },
+  { id: "iron",    n: "Iron Nerves",      how: "Reach 25 Composure",                 ok: () => S.stats.CMP >= 25 },
+  { id: "flawless",n: "Flawless Call",    how: "Get an S grade on any gate",         ok: () => Object.values(S.best).includes("S") },
+  { id: "streak",  n: "Daily Grinder",    how: "Finish the daily quest 7 days in a row", ok: () => S.streak >= 7 },
+  { id: "clear",   n: "Gate Crusher",     how: "Clear every gate with B or better",  ok: () => CALLS.every(c => S.best[c.id] && "SAB".includes(S.best[c.id])) },
+  { id: "srank",   n: "S-Rank Negotiator",how: "Reach S rank",                       ok: () => S.lvl >= 25 }
+];
+
 // ---------- State ----------
-const KEY = "callCloser.v1";
-let S = { xp: 0, calls: 0, skills: {}, best: {}, timer: true, voice: false };
-SKILLS.forEach(k => S.skills[k] = 0);
-try { const saved = JSON.parse(localStorage.getItem(KEY)); if (saved) S = Object.assign(S, saved); } catch (e) {}
+const KEY = "callCloser.v2";
+function fresh() {
+  const st = {}; STATS.forEach(s => st[s.k] = 10);
+  return { name: "Hunter", lvl: 1, xp: 0, total: 0, points: 0, stats: st, best: {}, drillBest: {}, calls: 0,
+           timer: true, voice: false, quest: { date: "", call: 0, vocab: 0, obj: 0, done: false }, streak: 0, lastDone: "", titles: [], title: "" };
+}
+let S = fresh();
+try { const saved = JSON.parse(localStorage.getItem(KEY)); if (saved) S = Object.assign(fresh(), saved); } catch (e) {}
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 
-function levelOf(xp) { let l = 1; LEVELS.forEach((t, i) => { if (xp >= t) l = i + 1; }); return l; }
 const $ = id => document.getElementById(id);
-function show(id) { ["home", "call", "results"].forEach(x => $(x).classList.toggle("hidden", x !== id)); window.scrollTo(0, 0); }
+function show(id) { ["home", "call", "drill", "results"].forEach(x => $(x).classList.toggle("hidden", x !== id)); window.scrollTo(0, 0); }
+
+// ---------- System popups ----------
+const sysQ = [];
+function sys(title, body) { sysQ.push({ title, body }); }
+function flushSys() {
+  if (!sysQ.length || !$("sys").classList.contains("hidden")) return;
+  const m = sysQ[0];
+  $("sysTitle").textContent = m.title; $("sysBody").textContent = m.body;
+  $("sysCount").textContent = sysQ.length > 1 ? "1 / " + sysQ.length : "";
+  $("sys").classList.remove("hidden"); $("sysOk").focus();
+}
+$("sysOk").onclick = () => { sysQ.shift(); $("sys").classList.add("hidden"); flushSys(); };
+
+// ---------- Progress ----------
+function gainXP(n) {
+  const oldRank = rankOf(S.lvl).r;
+  S.total += n; S.xp += n;
+  while (S.xp >= need(S.lvl)) {
+    S.xp -= need(S.lvl); S.lvl++; S.points += 3;
+    sys("Level Up!", `You reached Level ${S.lvl}. +3 stat points to assign.`);
+  }
+  const nr = rankOf(S.lvl).r;
+  if (nr !== oldRank) {
+    const opened = CALLS.filter(c => c.rank === nr).map(c => c.title);
+    sys(`Rank Up: ${nr}-Rank`, `You are now a ${nr}-Rank negotiator.` + (opened.length ? ` New gate open: ${opened.join(", ")}.` : ""));
+  }
+}
+function train(k, n) { S.stats[k] += n; }
+function checkTitles() {
+  TITLE_LIST.forEach(t => {
+    if (!S.titles.includes(t.id) && t.ok()) {
+      S.titles.push(t.id); if (!S.title) S.title = t.id;
+      sys("Title Acquired", `“${t.n}”. ${t.how}.`);
+    }
+  });
+}
+function today(off = 0) { const d = new Date(); d.setDate(d.getDate() + off); return d.toLocaleDateString("en-CA"); }
+function questTick(field, n) {
+  if (S.quest.date !== today()) S.quest = { date: today(), call: 0, vocab: 0, obj: 0, done: false };
+  S.quest[field] += n;
+  const q = S.quest;
+  if (!q.done && q.call >= 1 && q.vocab >= 5 && q.obj >= 3) {
+    q.done = true;
+    S.streak = S.lastDone === today(-1) ? S.streak + 1 : 1;
+    S.lastDone = today();
+    S.points += 2;
+    sys("Daily Quest Complete", `+120 XP and +2 stat points. Streak: ${S.streak} day${S.streak === 1 ? "" : "s"}.`);
+    gainXP(120);
+  }
+}
 
 // ---------- Home ----------
 function renderHome() {
-  const lvl = levelOf(S.xp);
-  $("lvl").textContent = lvl;
-  $("title").textContent = TITLES[lvl - 1];
-  $("callsMade").textContent = S.calls + (S.calls === 1 ? " call" : " calls") + " completed";
-  const cur = LEVELS[lvl - 1], next = LEVELS[lvl];
-  $("xpnow").textContent = S.xp + " XP";
-  if (next === undefined) { $("xpfill").style.width = "100%"; $("xpnext").textContent = "Max level"; }
-  else { $("xpfill").style.width = ((S.xp - cur) / (next - cur) * 100) + "%"; $("xpnext").textContent = (next - S.xp) + " to Level " + (lvl + 1); }
+  if (S.quest.date !== today()) S.quest = { date: today(), call: 0, vocab: 0, obj: 0, done: false };
+  const rk = rankOf(S.lvl);
+  $("rank").textContent = rk.r; $("rank").style.color = rk.c;
+  $("nameIn").value = S.name;
+  $("lvl").textContent = S.lvl;
+  const t = TITLE_LIST.find(x => x.id === S.title);
+  $("titleLine").textContent = "Title: " + (t ? t.n : "none yet");
+  $("totalXp").textContent = S.total + " XP total";
+  $("xpfill").style.width = (S.xp / need(S.lvl) * 100) + "%";
+  $("xpnow").textContent = S.xp + " / " + need(S.lvl) + " XP";
+  const nextR = RANKS.find(r => r.at > S.lvl);
+  $("rankNext").textContent = nextR ? `${nextR.r}-Rank at Lv ${nextR.at}` : "Max rank";
+  $("points").textContent = S.points ? `${S.points} stat point${S.points === 1 ? "" : "s"} to assign. Tap + to spend.` : "";
+  $("points").classList.toggle("hidden", !S.points);
 
-  $("skills").innerHTML = SKILLS.map(k => {
-    const v = S.skills[k] || 0, pct = Math.min(100, v);
-    return `<div class="skill"><span>${k}</span><div class="bar"><i style="width:${pct}%"></i></div><span class="num">${v}</span></div>`;
-  }).join("");
+  $("stats").innerHTML = STATS.map(s => `<div class="stat">
+      <abbr title="${s.n}">${s.k}</abbr>
+      <div class="nm">${s.n}<small>${s.fx(S.stats[s.k])}</small></div>
+      <span class="v num">${S.stats[s.k]}</span>
+      <button class="plus" data-k="${s.k}" aria-label="Add a point to ${s.n}" ${S.points ? "" : "disabled"}>+</button>
+    </div>`).join("");
+  document.querySelectorAll(".plus").forEach(b => b.onclick = () => {
+    if (!S.points) return; S.points--; S.stats[b.dataset.k]++; checkTitles(); save(); renderHome(); flushSys();
+  });
 
-  $("calls").innerHTML = CALLS.map(c => {
-    const locked = lvl < c.lvl, g = S.best[c.id];
-    return `<button class="callcard" data-id="${c.id}" ${locked ? "disabled" : ""}>
-      <div class="avatar">${c.init}</div>
-      <div><b>${c.title}</b><small>${c.name} · ${c.role}</small></div>
-      ${locked ? `<span class="lock">Level ${c.lvl}</span>` : `<span class="grade">${g || "–"}</span>`}
+  const q = S.quest;
+  const line = (label, v, goal) => `<div class="${v >= goal ? "done" : ""}"><span>${v >= goal ? "✓" : "·"} ${label}</span><span>[${Math.min(v, goal)}/${goal}]</span></div>`;
+  $("quest").innerHTML = line("Clear a gate (any grade)", q.call, 1) + line("Correct vocab answers", q.vocab, 5) + line("Objections handled", q.obj, 3) +
+    (q.done ? `<div class="done"><span>Quest complete. Come back tomorrow.</span></div>` : "");
+  $("streak").textContent = S.streak ? "Streak " + S.streak : "";
+
+  $("gates").innerHTML = CALLS.map(c => {
+    const locked = S.lvl < c.lvl, g = S.best[c.id];
+    return `<button class="card" data-id="${c.id}" ${locked ? "disabled" : ""}>
+      <div class="gr" style="color:${rankColor(c.rank)}">${c.rank}</div>
+      <div><b>${c.title}</b><small>${c.name} · trains ${STATS.find(s => s.k === c.focus).n}</small></div>
+      ${locked ? `<span class="lock">Opens at<br>Lv ${c.lvl}</span>` : `<span class="grade">${g || "–"}</span>`}
     </button>`;
   }).join("");
-  document.querySelectorAll(".callcard").forEach(b => b.onclick = () => startCall(b.dataset.id));
+  document.querySelectorAll("#gates .card").forEach(b => b.onclick = () => startCall(b.dataset.id));
+  $("vocabBest").textContent = S.drillBest.vocab || "–";
+  $("objBest").textContent = S.drillBest.obj || "–";
 
-  setToggle($("timerToggle"), S.timer, "20s timer");
+  $("titles").innerHTML = TITLE_LIST.map(t => {
+    const has = S.titles.includes(t.id);
+    return `<button class="chip" data-id="${t.id}" aria-pressed="${S.title === t.id}" ${has ? "" : "disabled"} title="${t.how}">${has ? t.n : "??? · " + t.how}</button>`;
+  }).join("");
+  document.querySelectorAll("#titles .chip").forEach(b => b.onclick = () => { S.title = b.dataset.id; save(); renderHome(); });
+
+  setToggle($("timerToggle"), S.timer, "Call timer");
   setToggle($("voiceToggle"), S.voice, "Read lines aloud");
 }
 function setToggle(el, on, label) { el.setAttribute("aria-pressed", on); el.textContent = label + ": " + (on ? "on" : "off"); }
 
+$("nameIn").onchange = () => { S.name = $("nameIn").value.trim() || "Hunter"; save(); };
 $("timerToggle").onclick = () => { S.timer = !S.timer; save(); renderHome(); };
 $("voiceToggle").onclick = () => { S.voice = !S.voice; save(); renderHome(); if (S.voice) speak("Voice on."); };
 $("resetBtn").onclick = () => $("resetConfirm").classList.remove("hidden");
 $("resetNo").onclick = () => $("resetConfirm").classList.add("hidden");
-$("resetYes").onclick = () => {
-  S.xp = 0; S.calls = 0; S.best = {}; SKILLS.forEach(k => S.skills[k] = 0);
-  save(); $("resetConfirm").classList.add("hidden"); renderHome();
-};
+$("resetYes").onclick = () => { S = fresh(); save(); $("resetConfirm").classList.add("hidden"); renderHome(); };
 
-// ---------- Voice ----------
 function speak(text) {
   if (!S.voice) return;
   try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 1.05; speechSynthesis.speak(u); } catch (e) {}
 }
-
-// ---------- Call ----------
-let C, turn, deal, trust, picks, clockInt, timerInt, seconds, startedAt;
-
 function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 function clamp(v) { return Math.max(0, Math.min(100, v)); }
+function gradeOf(score) { return score >= 90 ? "S" : score >= 80 ? "A" : score >= 68 ? "B" : score >= 55 ? "C" : "D"; }
+const RANKV = { S: 5, A: 4, B: 3, C: 2, D: 1 };
+function runTimer(secs, barEl, numEl, onEnd) {
+  let left = secs; barEl.style.width = "100%"; numEl.textContent = secs + "s";
+  const id = setInterval(() => {
+    left -= 0.1;
+    barEl.style.width = Math.max(0, left / secs * 100) + "%";
+    numEl.textContent = Math.ceil(Math.max(0, left)) + "s";
+    if (left <= 0) { clearInterval(id); onEnd(); }
+  }, 100);
+  return id;
+}
+
+// ---------- Call ----------
+let C, turn, deal, trust, picks, clockInt, timerInt, startedAt, insightLeft, curOpts;
 
 function startCall(id) {
   C = CALLS.find(c => c.id === id);
-  turn = 0; deal = 50; trust = 50; picks = [];
-  $("cAv").textContent = C.init; $("cName").textContent = C.name; $("cRole").textContent = C.role;
-  $("cBrief").textContent = C.brief;
+  turn = 0; picks = [];
+  deal = 50 + Math.min(10, bonus(S.stats.ANC, 5));
+  trust = 50 + Math.min(10, bonus(S.stats.RAP, 5));
+  insightLeft = Math.min(3, bonus(S.stats.LST, 10));
+  $("cRank").textContent = C.rank; $("cRank").style.color = rankColor(C.rank);
+  $("cName").textContent = C.name; $("cRole").textContent = C.role; $("cBrief").textContent = C.brief;
   startedAt = Date.now();
   clearInterval(clockInt);
   clockInt = setInterval(() => {
@@ -446,9 +649,13 @@ function startCall(id) {
 
 function meters() {
   $("dealV").textContent = deal; $("trustV").textContent = trust;
-  const col = v => v >= 70 ? "var(--good)" : v >= 45 ? "var(--accent)" : "var(--bad)";
+  const col = v => v >= 70 ? "var(--good)" : v >= 45 ? "var(--gold)" : "var(--bad)";
   $("dealBar").style.width = deal + "%"; $("dealBar").style.background = col(deal);
   $("trustBar").style.width = trust + "%"; $("trustBar").style.background = col(trust);
+}
+function insightLabel() {
+  $("insightBtn").textContent = `Use Insight (${insightLeft})`;
+  $("insightBtn").classList.toggle("hidden", insightLeft < 1);
 }
 
 function renderTurn() {
@@ -457,111 +664,256 @@ function renderTurn() {
   $("turnLabel").textContent = "Turn " + (turn + 1) + " of " + C.turns.length;
   $("theirLine").textContent = "“" + T.say + "”";
   $("after").classList.add("hidden");
-  const opts = shuffle(T.opts);
-  $("options").innerHTML = opts.map((o, i) => `<button class="opt" data-i="${i}">${o.t}</button>`).join("");
-  document.querySelectorAll(".opt").forEach(b => b.onclick = () => choose(opts[+b.dataset.i], b, opts));
+  curOpts = shuffle(T.opts);
+  $("options").innerHTML = curOpts.map((o, i) => `<button class="opt" data-i="${i}">${o.t}</button>`).join("");
+  document.querySelectorAll("#options .opt").forEach(b => b.onclick = () => choose(curOpts[+b.dataset.i], b));
+  insightLabel();
   speak(T.say);
-  startTimer(opts);
-}
-
-function startTimer(opts) {
   clearInterval(timerInt);
   $("timerRow").classList.toggle("hidden", !S.timer);
-  if (!S.timer) return;
-  seconds = 20;
-  $("timerNum").textContent = "20s"; $("timerBar").style.width = "100%";
-  timerInt = setInterval(() => {
-    seconds -= 0.1;
-    $("timerBar").style.width = Math.max(0, seconds / 20 * 100) + "%";
-    $("timerNum").textContent = Math.ceil(Math.max(0, seconds)) + "s";
-    if (seconds <= 0) { clearInterval(timerInt); choose(null, null, opts); }
-  }, 100);
+  if (S.timer) timerInt = runTimer(Math.min(30, 20 + bonus(S.stats.CMP, 5)), $("timerBar"), $("timerNum"), () => choose(null, null));
 }
 
-function choose(o, btn, opts) {
+$("insightBtn").onclick = () => {
+  const btns = [...document.querySelectorAll("#options .opt")].filter(b => !b.disabled && curOpts[+b.dataset.i].q === "bad");
+  if (!btns.length || insightLeft < 1) return;
+  btns[0].disabled = true; btns[0].classList.add("dim");
+  insightLeft--; insightLabel();
+};
+
+function choose(o, btn) {
   clearInterval(timerInt);
-  document.querySelectorAll(".opt").forEach(b => {
+  $("insightBtn").classList.add("hidden");
+  document.querySelectorAll("#options .opt").forEach(b => {
     b.disabled = true;
-    const ob = opts[+b.dataset.i];
+    const ob = curOpts[+b.dataset.i];
     if (ob.q === "best") b.classList.add("best");
     else if (b === btn && ob.q === "bad") b.classList.add("bad");
     else if (b !== btn) b.classList.add("dim");
   });
-  let fb;
-  if (!o) {
-    o = { t: "(Dead air...)", q: "bad", d: -6, r: -4, s: "Composure", f: "You froze. On a real call, buy time with \"Good question, let me think about that for a second.\" Then answer." };
-  }
+  if (!o) o = { t: "(Dead air...)", q: "bad", d: -6, r: -4, s: "Composure", f: "You froze. On a real call, buy time with \"Good question, let me think about that for a second.\" Then answer." };
   deal = clamp(deal + o.d); trust = clamp(trust + o.r);
   picks.push(o);
   meters();
   const labels = { best: "Strong move", good: "Decent", bad: "Costly" };
   const sign = n => (n > 0 ? "+" : "") + n;
   $("myLine").textContent = o.t;
-  fb = $("feedback");
+  const fb = $("feedback");
   fb.className = "feedback " + o.q;
   fb.innerHTML = `<span class="tag">${labels[o.q]} · ${o.s}</span><div>${o.f}</div><div class="muted num" style="font-size:13px">Deal ${sign(o.d)} · Trust ${sign(o.r)}</div>`;
   $("after").classList.remove("hidden");
   $("nextBtn").textContent = turn === C.turns.length - 1 ? "End call" : "Next";
-  $("nextBtn").focus({ preventScroll: true });
   $("after").scrollIntoView({ behavior: "smooth", block: "start" });
 }
-
 $("nextBtn").onclick = () => { turn++; if (turn < C.turns.length) { renderTurn(); window.scrollTo(0, 0); } else endCall(false); };
 $("hangBtn").onclick = () => endCall(true);
-
-// ---------- Results ----------
-function gradeOf(score) { return score >= 90 ? "S" : score >= 80 ? "A" : score >= 68 ? "B" : score >= 55 ? "C" : "D"; }
-const RANK = { S: 5, A: 4, B: 3, C: 2, D: 1 };
 
 function endCall(hungUp) {
   clearInterval(timerInt); clearInterval(clockInt);
   try { speechSynthesis.cancel(); } catch (e) {}
-  const beforeLvl = levelOf(S.xp);
   let score = Math.round(deal * 0.6 + trust * 0.4);
   if (hungUp) score = Math.min(score, 40);
   const g = gradeOf(score);
   const bestCount = picks.filter(p => p.q === "best").length;
-  const bonus = { S: 60, A: 35, B: 20, C: 5, D: 0 }[g];
   const first = !S.best[C.id];
-  let xp = hungUp ? 10 : score + bonus + bestCount * 5 + (first ? 25 : 0);
-  if (S.timer && !hungUp) xp = Math.round(xp * 1.2);
+  let xp = hungUp ? 10 : score + { S: 60, A: 35, B: 20, C: 5, D: 0 }[g] + bestCount * 5 + (first ? 25 : 0);
+  if (!hungUp) xp = Math.round(xp * (S.timer ? 1.2 : 1) * (1 + Math.min(50, S.stats.CLS - 10) / 100));
 
-  picks.forEach(p => {
-    const gain = p.q === "best" ? 4 : p.q === "good" ? 2 : 0;
-    S.skills[p.s] = (S.skills[p.s] || 0) + gain;
-  });
-  S.xp += xp;
-  if (!hungUp) S.calls++;
-  if (!hungUp && (!S.best[C.id] || RANK[g] > RANK[S.best[C.id]])) S.best[C.id] = g;
-  save();
+  const gains = {};
+  picks.forEach(p => { const k = SKILL_KEY[p.s]; const n = p.q === "best" ? 1 : 0; if (n) gains[k] = (gains[k] || 0) + n; });
+  if (!hungUp && "SAB".includes(g)) gains[C.focus] = (gains[C.focus] || 0) + 2;
+  Object.entries(gains).forEach(([k, n]) => train(k, n));
 
-  $("rName").textContent = C.name;
+  if (!hungUp) {
+    S.calls++;
+    if (!S.best[C.id] || RANKV[g] > RANKV[S.best[C.id]]) S.best[C.id] = g;
+  }
+  gainXP(xp);
+  if (!hungUp) questTick("call", 1);
+  checkTitles(); save();
+
+  $("rHead").textContent = hungUp ? "Gate abandoned" : `${C.rank}-Rank gate cleared`;
   $("rGrade").textContent = g;
   $("rVerdict").textContent = hungUp ? "You hung up early. The deal went cold." :
     { S: "Textbook. You protected your client and they'd call you again.", A: "Strong call. One or two moves left money on the table.",
       B: "Solid. Tighten your anchors and trades.", C: "You kept it alive, but the other side ran the call.", D: "Rough one. Run it again and try the moves in your playbook." }[g];
-  $("rDeal").textContent = deal; $("rTrust").textContent = trust; $("rXP").textContent = "+" + xp;
-
-  const afterLvl = levelOf(S.xp);
-  const lv = $("rLevel");
-  if (afterLvl > beforeLvl) {
-    const unlocked = CALLS.filter(c => c.lvl > beforeLvl && c.lvl <= afterLvl).map(c => c.title);
-    lv.textContent = "Level " + afterLvl + ": " + TITLES[afterLvl - 1] + (unlocked.length ? ". New call unlocked: " + unlocked.join(", ") : "");
-    lv.classList.remove("hidden");
-  } else lv.classList.add("hidden");
-
-  const lessons = C.turns.map((T, i) => {
-    const best = T.opts.find(o => o.q === "best");
-    const mine = picks[i];
+  $("rA").textContent = deal; $("rAl").textContent = "Deal";
+  $("rB").textContent = trust; $("rBl").textContent = "Trust";
+  $("rXP").textContent = "+" + xp;
+  showGains(gains);
+  $("rLessonHead").textContent = "Your playbook";
+  $("rLessons").innerHTML = C.turns.map((T, i) => {
+    const best = T.opts.find(o => o.q === "best"), mine = picks[i];
     if (!mine) return "";
-    const nailed = mine.q === "best";
-    return `<li><b>Turn ${i + 1} · ${best.s}</b><br>${nailed ? "You nailed it: " : "Stronger line: "}“${best.t}”</li>`;
-  }).join("");
-  $("rLessons").innerHTML = lessons || "<li>Finish a call to build your playbook.</li>";
-  show("results");
+    return `<li><b>Turn ${i + 1} · ${best.s}</b><br>${mine.q === "best" ? "You nailed it: " : "Stronger line: "}“${best.t}”</li>`;
+  }).join("") || "<li>Finish a call to build your playbook.</li>";
+  retry = () => startCall(C.id);
+  show("results"); flushSys();
+}
+function showGains(gains) {
+  const e = Object.entries(gains);
+  $("rGains").innerHTML = e.length ? e.map(([k, n]) => `<div>${STATS.find(s => s.k === k).n} <b style="color:var(--good)">+${n}</b> → ${S.stats[k]}</div>`).join("") : `<div class="muted">No stat gains this time. Strong answers train stats.</div>`;
 }
 
-$("retryBtn").onclick = () => startCall(C.id);
+// ---------- Drills ----------
+const VOCAB = [
+  { s: "Let's go over the [contract].", o: ["agreement", "deal sheet", "legal papers"], f: "\"Contract\" sounds binding and scary. \"Agreement\" sounds mutual." },
+  { s: "[Just sign] here and we're set.", o: ["Okay the paperwork", "Put your John Hancock", "Sign off"], f: "Swap \"sign\" for approve or okay. It lowers the pressure of the moment." },
+  { s: "The house is really [cheap].", o: ["priced right", "low-cost", "a bargain bin find"], f: "\"Cheap\" signals low quality. \"Priced right\" signals smart value." },
+  { s: "How much is your [down payment]?", o: ["initial investment", "money down", "upfront cost"], f: "\"Investment\" frames the money as building something, not losing it." },
+  { s: "My [commission] is 3%.", o: ["fee for full service", "cut", "percentage"], f: "Tie the number to the service you deliver." },
+  { s: "There's a [problem] with the inspection.", o: ["item we need to address", "big issue", "red flag"], f: "Neutral words keep people calm. \"Problem\" makes them brace." },
+  { s: "[I think] the price is fair.", o: ["The recent sales show", "I feel like", "I guess"], f: "Drop the hedge. Back your claim with evidence instead of opinion." },
+  { s: "Hi, I'm [just calling to] check in.", o: ["calling to", "only calling to", "sorry, calling to"], f: "\"Just\" shrinks you. State why you're calling." },
+  { s: "[Sorry to bother you], do you have a minute?", o: ["Thanks for picking up", "I know you're busy, sorry", "Sorry for the interruption"], f: "Open with gratitude, not an apology. You're not a bother." },
+  { s: "[Honestly, this] is a great offer.", o: ["This", "To be honest, this", "Truthfully, this"], f: "\"Honestly\" implies the rest of what you said wasn't." },
+  { s: "When do you want to [buy] the home?", o: ["own", "purchase", "pay for"], f: "\"Own\" is the dream. \"Buy\" is the bill." },
+  { s: "[Why did you] price it at $500k?", o: ["What went into", "How come you", "Why would you"], f: "\"Why\" sounds accusing. \"What\" invites them to explain." },
+  { s: "[You need to] lower the price.", o: ["What would happen if we", "You have to", "You should really"], f: "Let them reach the conclusion. People defend their own ideas." },
+  { s: "[Does that make sense]?", o: ["How does that sound to you", "Get it", "Understand"], f: "\"Make sense?\" can sound condescending. Ask for their view." },
+  { s: "[I'll try to] have it by Friday.", o: ["I'll", "I'll do my best to", "Hopefully I can"], f: "Commit. \"Try\" tells them to expect a miss." },
+  { s: "[Is this a good time] to talk?", o: ["Is now a bad time", "Got a sec", "Can you talk"], f: "A question built for \"no\" lets people feel safe and in control." },
+  { s: "[No problem], I'll send it over.", o: ["Happy to", "No worries", "Not a problem at all"], f: "Say what you are, not what you aren't." },
+  { s: "I hear you, [but] the comps say otherwise.", o: ["and", "however", "though"], f: "\"But\" erases everything before it. \"And\" keeps both true." },
+  { s: "This is a [listing appointment].", o: ["pricing strategy session", "sales pitch", "listing meeting"], f: "Name the meeting by the value they get." },
+  { s: "Your [monthly payment] would be about $2,400.", o: ["monthly investment", "monthly bill", "monthly cost"], f: "Frame recurring money as building equity." }
+];
+const OBJECTIONS = [
+  { s: "We want to wait until rates come down.", o: [
+    { t: "Makes sense. When rates drop, buyers rush back and prices climb. Would it help to see the numbers both ways?", q: "best" },
+    { t: "You can always refinance later.", q: "good" },
+    { t: "Rates aren't coming down anytime soon.", q: "bad" } ],
+    f: "Agree first, then show the trade-off with their own numbers." },
+  { s: "Your commission is too high.", o: [
+    { t: "Fair question. What matters most to you: your net, how fast it sells, or less hassle?", q: "best" },
+    { t: "I'm worth every penny.", q: "bad" },
+    { t: "I could come down a little.", q: "good" } ],
+    f: "Find what they value before defending your price." },
+  { s: "I'm going to sell it myself.", o: [
+    { t: "Great, a lot of owners start there. Are you open to buyers who work with agents?", q: "best" },
+    { t: "Most people who try that end up listing.", q: "bad" },
+    { t: "Okay, here's my card in case.", q: "good" } ],
+    f: "Respect their choice and ask a small yes question." },
+  { s: "My cousin is an agent.", o: [
+    { t: "Glad you have someone you trust. Would a second opinion on price hurt, so you can compare?", q: "best" },
+    { t: "Family and business don't mix.", q: "bad" },
+    { t: "Okay, good luck with the sale.", q: "good" } ],
+    f: "Don't attack the relationship. Offer value alongside it." },
+  { s: "We need to think about it.", o: [
+    { t: "Of course. Which part do you want to think through? Maybe I can help with it now.", q: "best" },
+    { t: "Sure, I'll follow up next week.", q: "good" },
+    { t: "What's there to think about?", q: "bad" } ],
+    f: "\"Think about it\" hides a specific concern. Ask for it kindly." },
+  { s: "Zillow says my house is worth $40k more.", o: [
+    { t: "Online estimates can't see inside your home. Let's look at the three closest sales together.", q: "best" },
+    { t: "Zillow is always wrong.", q: "bad" },
+    { t: "We could try that price and see.", q: "good" } ],
+    f: "Move the conversation from an algorithm to real comps." },
+  { s: "Another agent said they'd list it $50k higher.", o: [
+    { t: "What did they base that on? Overpricing usually costs more in time on market than it gains.", q: "best" },
+    { t: "Then go with them.", q: "bad" },
+    { t: "I can match their price.", q: "good" } ],
+    f: "Ask for their evidence, then explain the real cost of overpricing." },
+  { s: "We're not in a hurry.", o: [
+    { t: "That's a strong spot to negotiate from. What would make moving sooner worth it to you?", q: "best" },
+    { t: "The market could turn any day.", q: "bad" },
+    { t: "Okay, call me when you're ready.", q: "good" } ],
+    f: "Turn their patience into leverage and find their real motive." },
+  { s: "I don't want a long listing agreement.", o: [
+    { t: "Fair. If I add an easy-exit clause for when I'm not performing, would six months work?", q: "best" },
+    { t: "Six months is standard. Everyone does it.", q: "bad" },
+    { t: "We can do 90 days.", q: "good" } ],
+    f: "Remove the risk they fear instead of cutting the term." },
+  { s: "Can you cut your fee if we buy and sell with you?", o: [
+    { t: "I can look at that. If I do, can we sign both agreements today?", q: "best" },
+    { t: "Sure, I'll knock off a point.", q: "good" },
+    { t: "My fee is my fee.", q: "bad" } ],
+    f: "Give to get. A concession should buy commitment." }
+];
+
+let D, dIdx, dItems, dCorrect, dTimer, dOpts;
+function startDrill(type) {
+  D = type; dIdx = 0; dCorrect = 0;
+  dItems = shuffle(type === "vocab" ? VOCAB : OBJECTIONS).slice(0, type === "vocab" ? 8 : 6);
+  $("dIcon").textContent = type === "vocab" ? "V" : "H";
+  $("dTitle").textContent = type === "vocab" ? "Vocabulary Drill" : "Objection Gauntlet";
+  $("dPrompt").textContent = type === "vocab" ? "Pick the strongest replacement for the highlighted words." : "They just said this. Pick your best response before time runs out.";
+  show("drill"); renderDrill();
+}
+function esc(s) { return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function renderDrill() {
+  const it = dItems[dIdx];
+  $("dProgress").textContent = `Round ${dIdx + 1} of ${dItems.length} · ${dCorrect} correct`;
+  $("dAfter").classList.add("hidden");
+  if (D === "vocab") {
+    $("dLine").innerHTML = esc(it.s).replace(/\[(.+?)\]/, "<mark>$1</mark>");
+    dOpts = shuffle(it.o.map((t, i) => ({ t, q: i === 0 ? "best" : "bad" })));
+  } else {
+    $("dLine").textContent = "“" + it.s + "”";
+    dOpts = shuffle(it.o);
+    speak(it.s);
+  }
+  $("dOptions").innerHTML = dOpts.map((o, i) => `<button class="opt" data-i="${i}">${esc(o.t)}</button>`).join("");
+  document.querySelectorAll("#dOptions .opt").forEach(b => b.onclick = () => drillPick(dOpts[+b.dataset.i], b));
+  clearInterval(dTimer);
+  const timed = D === "obj";
+  $("dTimerRow").classList.toggle("hidden", !timed);
+  if (timed) dTimer = runTimer(12 + bonus(S.stats.HDL, 5), $("dTimerBar"), $("dTimerNum"), () => drillPick(null, null));
+}
+function drillPick(o, btn) {
+  clearInterval(dTimer);
+  const it = dItems[dIdx];
+  document.querySelectorAll("#dOptions .opt").forEach(b => {
+    b.disabled = true; const ob = dOpts[+b.dataset.i];
+    if (ob.q === "best") b.classList.add("best");
+    else if (b === btn) b.classList.add("bad"); else b.classList.add("dim");
+  });
+  const ok = o && o.q === "best";
+  if (ok) dCorrect++;
+  const q = !o ? "bad" : o.q;
+  const fb = $("dFeedback");
+  fb.className = "feedback " + q;
+  const tag = !o ? "Time's up" : ok ? "Correct" : q === "good" ? "Okay, not best" : "Weak";
+  fb.innerHTML = `<span class="tag">${tag}</span><div>${esc(it.f)}</div>`;
+  $("dAfter").classList.remove("hidden");
+  $("dNext").textContent = dIdx === dItems.length - 1 ? "Finish" : "Next";
+  $("dProgress").textContent = `Round ${dIdx + 1} of ${dItems.length} · ${dCorrect} correct`;
+}
+$("dNext").onclick = () => { dIdx++; if (dIdx < dItems.length) { renderDrill(); window.scrollTo(0, 0); } else endDrill(); };
+$("dQuit").onclick = () => { clearInterval(dTimer); renderHome(); show("home"); };
+$("vocabBtn").onclick = () => startDrill("vocab");
+$("objBtn").onclick = () => startDrill("obj");
+
+function endDrill() {
+  const n = dItems.length, pct = dCorrect / n * 100;
+  const g = gradeOf(pct);
+  const stat = D === "vocab" ? "VOC" : "HDL";
+  const per = D === "vocab" ? 8 + bonus(S.stats.VOC, 5) : 12 + bonus(S.stats.HDL, 5);
+  const xp = dCorrect * per + (dCorrect === n ? 30 : 0);
+  const gain = Math.ceil(dCorrect / 2) + (dCorrect === n ? 1 : 0);
+  if (gain) train(stat, gain);
+  if (!S.drillBest[D] || RANKV[g] > RANKV[S.drillBest[D]]) S.drillBest[D] = g;
+  gainXP(xp);
+  questTick(D === "vocab" ? "vocab" : "obj", dCorrect);
+  checkTitles(); save();
+
+  $("rHead").textContent = D === "vocab" ? "Vocabulary Drill complete" : "Objection Gauntlet complete";
+  $("rGrade").textContent = g;
+  $("rVerdict").textContent = dCorrect === n ? "Perfect run. +30 XP bonus." : "Run it again to lock in the words you missed.";
+  $("rA").textContent = dCorrect; $("rAl").textContent = "Correct";
+  $("rB").textContent = n - dCorrect; $("rBl").textContent = "Missed";
+  $("rXP").textContent = "+" + xp;
+  showGains(gain ? { [stat]: gain } : {});
+  $("rLessonHead").textContent = "Lines to remember";
+  $("rLessons").innerHTML = dItems.map(it => D === "vocab"
+    ? `<li><b>${esc(it.s.match(/\[(.+?)\]/)[1])} → ${esc(it.o[0])}</b><br>${esc(it.f)}</li>`
+    : `<li><b>“${esc(it.s)}”</b><br>${esc(it.o.find(x => x.q === "best").t)}</li>`).join("");
+  retry = () => startDrill(D);
+  show("results"); flushSys();
+}
+
+let retry = () => {};
+$("retryBtn").onclick = () => retry();
 $("homeBtn").onclick = () => { renderHome(); show("home"); };
 
 renderHome();
