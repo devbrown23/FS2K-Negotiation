@@ -155,6 +155,19 @@ h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-he
 .lib p { margin: 8px 0 0; }
 .lib .ex { color: var(--muted); font-style: italic; }
 .fine { font-size: 12px; color: var(--muted); margin: 0; }
+.logo { font: 700 44px/1 var(--display); letter-spacing: .06em; text-align: center; color: var(--ink); text-shadow: 0 0 24px rgba(79,179,255,.55); }
+.hero { display: grid; gap: 12px; text-align: center; padding: 28px 0 8px; }
+.hero p { margin: 0 auto; max-width: 34ch; color: var(--muted); }
+.loginSum { display: grid; grid-template-columns: 52px 1fr; gap: 12px; align-items: center; }
+.loginSum .rank { width: 52px; height: 52px; font-size: 26px; }
+.board { display: grid; gap: 6px; }
+.brow { display: grid; grid-template-columns: 28px 1fr 34px 70px; gap: 10px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; font-size: 14px; }
+.brow.me { border-color: var(--gold); }
+.brow .pos { font: 700 15px var(--display); color: var(--muted); }
+.brow .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.brow .rk { font: 700 15px var(--display); text-align: center; }
+.brow .xp { text-align: right; color: var(--muted); }
+.spark { width: 100%; height: 80px; display: block; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
@@ -169,8 +182,27 @@ h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-he
   </div>
 </div>
 
+<!-- LOGIN -->
+<main id="login" class="wrap">
+  <div class="hero">
+    <div class="wintag" style="justify-content:center"><span>[ System ] · Negotiation training</span></div>
+    <h1 class="logo">CALL CLOSER</h1>
+    <p>Practice real estate phone calls, learn from the masters, and level up from E-Rank to S.</p>
+  </div>
+  <section class="win" aria-label="Player login">
+    <div class="wintag"><span>Player login</span></div>
+    <div id="loginStatus">Connecting to your account…</div>
+    <div id="loginSum" class="loginSum hidden">
+      <div class="rank" id="lRank">E</div>
+      <div><b id="lName" style="font-family:var(--display);font-size:18px"></b><div class="muted num" id="lMeta" style="font-size:14px"></div></div>
+    </div>
+    <button class="primary" id="enterBtn" disabled>Enter</button>
+    <button class="ghost" id="guestBtn" style="justify-self:center">Play as guest on this device</button>
+  </section>
+</main>
+
 <!-- HOME -->
-<main id="home" class="wrap">
+<main id="home" class="wrap hidden">
   <section class="win" aria-label="Status">
     <div class="wintag"><span>Status</span><span id="totalXp" class="num"></span></div>
     <div class="head">
@@ -197,6 +229,12 @@ h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-he
     <div class="questReward" id="todayTip" style="color:var(--ink)"></div>
   </section>
 
+  <section class="win" aria-label="Growth">
+    <div class="wintag"><span>Growth</span><span id="growthMeta" class="num"></span></div>
+    <svg class="spark" id="spark" viewBox="0 0 300 80" preserveAspectRatio="none" role="img" aria-label="Your recent scores"></svg>
+    <div id="growthText" style="font-size:14px"></div>
+  </section>
+
   <div class="sectionhead"><h2>Gates</h2><span class="muted" style="font-size:13px">Live calls · best grade</span></div>
   <div class="list" id="gates"></div>
 
@@ -213,6 +251,10 @@ h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-he
   <div class="sectionhead"><h2>Titles</h2><span class="muted" style="font-size:13px">Tap to equip</span></div>
   <div class="chips" id="titles"></div>
 
+  <div class="sectionhead"><h2>Leaderboard</h2><span class="muted" style="font-size:13px">Top 20 by total XP</span></div>
+  <div class="board" id="board"><div class="muted" style="font-size:14px">Sign in to see the leaderboard.</div></div>
+
+  <p class="fine" id="acct"></p>
   <div class="row">
     <button class="ghost" id="timerToggle" aria-pressed="true">Call timer: on</button>
     <button class="ghost" id="voiceToggle" aria-pressed="false">Read lines aloud: off</button>
@@ -674,14 +716,39 @@ const KEY = "callCloser.v2";
 function fresh() {
   const st = {}; STATS.forEach(s => st[s.k] = 10);
   return { name: "Hunter", lvl: 1, xp: 0, total: 0, points: 0, stats: st, best: {}, drillBest: {}, calls: 0,
-           timer: true, voice: false, quest: { date: "", call: 0, vocab: 0, obj: 0, done: false }, streak: 0, lastDone: "", titles: [], title: "" };
+           timer: true, voice: false, quest: { date: "", call: 0, vocab: 0, obj: 0, done: false }, streak: 0, lastDone: "", titles: [], title: "", history: [] };
 }
 let S = fresh();
 try { const saved = JSON.parse(localStorage.getItem(KEY)); if (saved) S = Object.assign(fresh(), saved); } catch (e) {}
-function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+let DB = null, USER = null, UID = null, cloud = false, writing = false, dirty = false, flushT, lastBoard = "";
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+  if (!cloud) return;
+  dirty = true; clearTimeout(flushT); flushT = setTimeout(flush, 600);
+}
+async function flush() {
+  if (writing || !dirty || !cloud) return;
+  writing = true; dirty = false;
+  try {
+    await DB.doc("data/users/" + UID + "/save").set({ v: 2, updated: Date.now(), state: JSON.parse(JSON.stringify(S)) });
+    const row = { lvl: S.lvl, total: S.total, rank: rankOf(S.lvl).r, calls: S.calls, updated: Date.now() };
+    const key = row.lvl + ":" + row.total;
+    if (key !== lastBoard) { await DB.doc("leaderboard/" + UID).set(row); lastBoard = key; }
+    setAcct("Progress saved to your account.");
+  } catch (e) {
+    if (e && e.code === "invalid_argument") { cloud = false; setAcct("Your access to this page is view-only, so progress is saved on this device only."); }
+    else setAcct("Couldn't reach your account just now. Progress is kept on this device and will sync on your next save.");
+  }
+  writing = false;
+  if (dirty) flush();
+}
+function setAcct(t) { const el = document.getElementById("acct"); if (el) el.textContent = t; }
+function record(k, id, score) {
+  S.history = (S.history || []).concat({ t: Date.now(), k, id, s: Math.round(score) }).slice(-100);
+}
 
 const $ = id => document.getElementById(id);
-function show(id) { ["home", "call", "drill", "results"].forEach(x => $(x).classList.toggle("hidden", x !== id)); window.scrollTo(0, 0); }
+function show(id) { ["login", "home", "call", "drill", "results"].forEach(x => $(x).classList.toggle("hidden", x !== id)); window.scrollTo(0, 0); }
 
 // ---------- System popups ----------
 const sysQ = [];
@@ -795,6 +862,7 @@ function renderHome() {
   }).join("");
   document.querySelectorAll("#titles .chip").forEach(b => b.onclick = () => { S.title = b.dataset.id; save(); renderHome(); });
 
+  renderGrowth();
   setToggle($("timerToggle"), S.timer, "Call timer");
   setToggle($("voiceToggle"), S.voice, "Read lines aloud");
 }
@@ -929,6 +997,7 @@ function endCall(hungUp) {
     S.calls++;
     if (!S.best[C.id] || RANKV[g] > RANKV[S.best[C.id]]) S.best[C.id] = g;
   }
+  if (!hungUp) record("gate", C.id, score);
   gainXP(xp);
   if (!hungUp) questTick("call", 1);
   checkTitles(); save();
@@ -1110,6 +1179,7 @@ function endDrill() {
   }
   Object.entries(gains).forEach(([k, v]) => train(k, v));
   if (!S.drillBest[D] || RANKV[g] > RANKV[S.drillBest[D]]) S.drillBest[D] = g;
+  record(D, D, pct);
   gainXP(xp);
   if (D !== "tech") questTick(D === "vocab" ? "vocab" : "obj", dCorrect);
   checkTitles(); save();
@@ -1131,11 +1201,110 @@ function endDrill() {
   show("results"); flushSys();
 }
 
+// ---------- Growth ----------
+function renderGrowth() {
+  const h = S.history || [];
+  const week = h.filter(x => x.t > Date.now() - 7 * 864e5).length;
+  $("growthMeta").textContent = h.length + " sessions · " + week + " this week";
+  const pts = h.slice(-20);
+  const svg = $("spark");
+  if (pts.length < 2) {
+    svg.innerHTML = `<line x1="0" y1="40" x2="300" y2="40" stroke="#1e3a66" stroke-dasharray="4 4"/>`;
+    $("growthText").innerHTML = `<span class="muted">Finish a few calls and drills to draw your growth line.</span>`;
+    return;
+  }
+  const X = i => 6 + i * (288 / (pts.length - 1)), Y = v => 74 - v * 0.68;
+  const line = pts.map((p, i) => X(i).toFixed(1) + "," + Y(p.s).toFixed(1)).join(" ");
+  const last = pts[pts.length - 1];
+  svg.innerHTML = `<line x1="0" y1="${Y(100)}" x2="300" y2="${Y(100)}" stroke="#1e3a66" stroke-dasharray="3 5"/>
+    <line x1="0" y1="${Y(50)}" x2="300" y2="${Y(50)}" stroke="#1e3a66" stroke-dasharray="3 5"/>
+    <polygon points="${X(0)},74 ${line} ${X(pts.length - 1)},74" fill="rgba(79,179,255,.14)"/>
+    <polyline points="${line}" fill="none" stroke="#4fb3ff" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
+    <circle cx="${X(pts.length - 1)}" cy="${Y(last.s)}" r="4" fill="#ffc857"/>`;
+  const avg = a => Math.round(a.reduce((t, x) => t + x.s, 0) / a.length);
+  const first = avg(h.slice(0, 5)), recent = avg(h.slice(-5)), diff = recent - first;
+  $("growthText").innerHTML = h.length < 6
+    ? `Latest score <b>${last.s}</b>. Keep going: after 6 sessions you'll see how far you've come.`
+    : `Your last 5 sessions average <b>${recent}</b>, ${diff >= 0 ? `<b style="color:var(--good)">up ${diff}</b>` : `<b style="color:var(--bad)">down ${-diff}</b>`} from your first 5 (${first}).`;
+}
+
+// ---------- Leaderboard ----------
+let boardOn = false;
+function subscribeBoard() {
+  if (!cloud || boardOn) return;
+  boardOn = true;
+  const t = setTimeout(() => { $("board").innerHTML = `<div class="muted" style="font-size:14px">The leaderboard can't be reached yet.</div>`; }, 10000);
+  DB.collection("leaderboard").orderBy("total", "desc").limit(20).onSnapshot(async snap => {
+    if (!snap.metadata.fromCache) clearTimeout(t);
+    if (snap.empty) { $("board").innerHTML = `<div class="muted" style="font-size:14px">No one on the board yet. Clear a gate to be first.</div>`; return; }
+    const ids = snap.docs.map(d => d.id);
+    let ps = {};
+    try { ps = await USER.profiles(ids); } catch (e) {}
+    const box = $("board"); box.innerHTML = "";
+    snap.docs.forEach((d, i) => {
+      const r = d.data() || {};
+      const row = document.createElement("div");
+      row.className = "brow" + (d.id === UID ? " me" : "");
+      const rk = RANKS.find(x => x.r === r.rank) || RANKS[0];
+      row.innerHTML = `<span class="pos num">${i + 1}</span><span class="who"></span><span class="rk" style="color:${rk.c}">${rk.r}</span><span class="xp num">Lv ${Number(r.lvl) || 1} · ${Number(r.total) || 0}</span>`;
+      row.querySelector(".who").textContent = (ps[d.id] && ps[d.id].name) || (d.id === UID ? "You" : "Player");
+      box.appendChild(row);
+    });
+  }, () => { clearTimeout(t); $("board").innerHTML = `<div class="muted" style="font-size:14px">The leaderboard isn't available right now.</div>`; });
+}
+
+// ---------- Login ----------
+let loginDone = false;
+function loginOffline(msg) {
+  if (loginDone) return; loginDone = true;
+  $("loginStatus").textContent = msg;
+  showSummary(S.name);
+  $("enterBtn").disabled = false; $("enterBtn").textContent = S.total ? "Continue on this device" : "Play on this device";
+  $("guestBtn").classList.add("hidden");
+  setAcct("Progress is saved on this device only.");
+}
+function showSummary(name) {
+  const rk = rankOf(S.lvl);
+  $("lRank").textContent = rk.r; $("lRank").style.color = rk.c;
+  $("lName").textContent = name;
+  $("lMeta").textContent = S.total ? `Level ${S.lvl} · ${rk.r}-Rank · ${S.total} XP · ${S.calls} calls` : "New player · Level 1 · E-Rank";
+  $("loginSum").classList.remove("hidden");
+}
+(async () => {
+  const t = setTimeout(() => loginOffline("Couldn't reach your account. You can still play, and progress will be saved on this device."), 12000);
+  try {
+    if (!window.claude || !window.claude.use) { clearTimeout(t); loginOffline("Open this page on claude.ai and sign in to save progress to your account."); return; }
+    USER = await claude.use("user"); DB = await claude.use("db");
+    UID = USER ? await USER.id() : null;
+    if (!DB || !UID) { clearTimeout(t); loginOffline("Sign in to claude.ai to save progress to your account. For now, progress stays on this device."); return; }
+    let me = null; try { me = await USER.me(); } catch (e) {}
+    const profileName = (me && me.name) || "";
+    const snap = await DB.doc("data/users/" + UID + "/save").get();
+    clearTimeout(t);
+    if (loginDone) return;
+    loginDone = true; cloud = true;
+    let returning = false;
+    if (snap.exists && snap.data().state) { S = Object.assign(fresh(), JSON.parse(JSON.stringify(snap.data().state))); returning = true; }
+    else if (S.name === "Hunter" && profileName) S.name = profileName.split(" ")[0];
+    $("loginStatus").textContent = "Signed in" + (profileName ? " as " + profileName : "") + ". Your progress is saved to your account, on any device.";
+    showSummary(S.name);
+    $("enterBtn").disabled = false;
+    $("enterBtn").textContent = returning ? "Continue your journey" : "Start your journey";
+    $("guestBtn").classList.add("hidden");
+    setAcct("Progress saved to your account.");
+    if (!returning && S.total) save();
+  } catch (e) {
+    clearTimeout(t);
+    loginOffline("Couldn't load your account. You can still play, and progress will be saved on this device.");
+  }
+})();
+$("enterBtn").onclick = () => { renderHome(); show("home"); subscribeBoard(); flushSys(); };
+$("guestBtn").onclick = () => { loginDone = true; cloud = false; setAcct("Playing as a guest. Progress is saved on this device only."); renderHome(); show("home"); };
+
 let retry = () => {};
 $("retryBtn").onclick = () => retry();
 $("homeBtn").onclick = () => { renderHome(); show("home"); };
 
-renderHome();
 </script>
 </body>
 </html>

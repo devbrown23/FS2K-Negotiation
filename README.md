@@ -4,7 +4,7 @@ A phone negotiation training game with an RPG-style leveling system. Play realis
 
 ## Play
 
-Open `index.html` in any browser. It needs no build step and no server. Progress is saved in your browser.
+Play it at the claude.ai link and sign in: progress saves to your account, works on any device, and puts you on the leaderboard. You can also open `index.html` in any browser to play as a guest, with progress saved on that device.
 
 ## How you level up
 
