@@ -168,6 +168,21 @@ h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-he
 .brow .rk { font: 700 15px var(--display); text-align: center; }
 .brow .xp { text-align: right; color: var(--muted); }
 .spark { width: 100%; height: 80px; display: block; }
+.tabs { position: sticky; top: 0; z-index: 5; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 8px 0; background: var(--bg); }
+.tab { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 9px 4px; font: 700 13px var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.tab[aria-selected="true"] { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 12px rgba(79,179,255,.25); }
+.pane { display: grid; gap: 18px; }
+.arenaStats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; }
+.arenaStats div { background: rgba(6,10,19,.5); border: 1px solid var(--line); border-radius: 4px; padding: 8px 4px; }
+.arenaStats b { display: block; font: 700 20px var(--display); }
+.arenaStats small { font-size: 11px; color: var(--muted); }
+.course h3 { font-size: 15px; color: var(--gold); letter-spacing: .08em; text-transform: uppercase; }
+.course .src { font-size: 12px; color: var(--muted); margin: 2px 0 8px; }
+.lessonBody { display: grid; gap: 12px; font-size: 16px; }
+.lessonBody p { margin: 0; }
+.script { background: #0f2440; border: 1px solid #2a5288; border-radius: 6px; padding: 12px 14px; font-size: 15px; }
+.script b { font: 700 12px var(--display); letter-spacing: .14em; color: var(--accent); display: block; margin-bottom: 4px; }
+.done { color: var(--good); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
@@ -203,6 +218,14 @@ h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-he
 
 <!-- HOME -->
 <main id="home" class="wrap hidden">
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" data-tab="hub" aria-selected="true">Hub</button>
+    <button class="tab" role="tab" data-tab="dial" aria-selected="false">Dial</button>
+    <button class="tab" role="tab" data-tab="study" aria-selected="false">Study</button>
+    <button class="tab" role="tab" data-tab="ranks" aria-selected="false">Ranks</button>
+  </nav>
+
+  <div class="pane" data-pane="hub">
   <section class="win" aria-label="Status">
     <div class="wintag"><span>Status</span><span id="totalXp" class="num"></span></div>
     <div class="head">
@@ -234,9 +257,28 @@ h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-he
     <svg class="spark" id="spark" viewBox="0 0 300 80" preserveAspectRatio="none" role="img" aria-label="Your recent scores"></svg>
     <div id="growthText" style="font-size:14px"></div>
   </section>
+  </div>
+
+  <div class="pane hidden" data-pane="dial">
+  <section class="win" aria-label="Cold Call Arena">
+    <div class="wintag"><span>Cold Call Arena</span><span class="num" id="arenaToday"></span></div>
+    <div style="font-size:15px">Endless dials. Six lead types: expireds, FSBOs, just-sold neighbors, past clients, old internet leads and absentee owners. Every lead gets a random personality, and some calls go to voicemail.</div>
+    <div class="arenaStats num">
+      <div><b id="aDials">0</b><small>Dials</small></div>
+      <div><b id="aConvos">0</b><small>Talks</small></div>
+      <div><b id="aAppts">0</b><small>Appts</small></div>
+      <div><b id="aConv">0%</b><small>Talk→Appt</small></div>
+    </div>
+    <button class="primary" id="dialBtn">Start dialing</button>
+  </section>
 
   <div class="sectionhead"><h2>Gates</h2><span class="muted" style="font-size:13px">Live calls · best grade</span></div>
   <div class="list" id="gates"></div>
+  </div>
+
+  <div class="pane hidden" data-pane="study">
+  <div class="sectionhead"><h2>Academy</h2><span class="muted num" style="font-size:13px" id="classCount"></span></div>
+  <div class="lib" id="academy"></div>
 
   <div class="sectionhead"><h2>Training</h2><span class="muted" style="font-size:13px">Quick drills</span></div>
   <div class="list">
@@ -247,7 +289,9 @@ h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-he
 
   <div class="sectionhead"><h2>Mentors' Library</h2><span class="muted num" style="font-size:13px" id="techCount"></span></div>
   <div class="lib" id="library"></div>
+  </div>
 
+  <div class="pane hidden" data-pane="ranks">
   <div class="sectionhead"><h2>Titles</h2><span class="muted" style="font-size:13px">Tap to equip</span></div>
   <div class="chips" id="titles"></div>
 
@@ -265,6 +309,18 @@ h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-he
     <div>Erase your level, stats, titles and grades on this device?</div>
     <div class="row"><button class="ghost" id="resetYes">Yes, reset</button><button class="ghost" id="resetNo">Keep my progress</button></div>
   </div>
+  </div>
+</main>
+
+<!-- LESSON -->
+<main id="lesson" class="wrap hidden">
+  <div class="callhead">
+    <div class="wintag" style="justify-content:center"><span id="lCourse"></span></div>
+    <h2 id="lTitle"></h2>
+  </div>
+  <div class="lessonBody" id="lBody"></div>
+  <button class="primary" id="quizBtn">Take the quiz (3 questions)</button>
+  <button class="ghost" id="lessonBack" style="justify-self:center">Back to Study</button>
 </main>
 
 <!-- CALL -->
@@ -708,6 +764,9 @@ const TITLE_LIST = [
   { id: "clear",   n: "Gate Crusher",     how: "Clear every gate with B or better",  ok: () => CALLS.every(c => S.best[c.id] && "SAB".includes(S.best[c.id])) },
   { id: "scholar", n: "Student of the Masters", how: "Learn every technique in the library", ok: () => S.lvl >= Math.max(...TECH.map(t => t.lvl)) },
   { id: "tactics", n: "Master of Tactics", how: "Get a perfect run in Mentor Trials", ok: () => S.drillBest.tech === "S" },
+  { id: "dialer",  n: "Iron Dialer",       how: "Make 100 cold call dials",           ok: () => S.dials >= 100 },
+  { id: "setter",  n: "Appointment Setter",how: "Book 10 appointments in the Arena",   ok: () => S.appts >= 10 },
+  { id: "honor",   n: "Honor Student",     how: "Pass every class in the Academy",     ok: () => COURSES.every(c => c.lessons.every(l => S.classes[l.id])) },
   { id: "srank",   n: "S-Rank Negotiator",how: "Reach S rank",                       ok: () => S.lvl >= 25 }
 ];
 
@@ -716,7 +775,7 @@ const KEY = "callCloser.v2";
 function fresh() {
   const st = {}; STATS.forEach(s => st[s.k] = 10);
   return { name: "Hunter", lvl: 1, xp: 0, total: 0, points: 0, stats: st, best: {}, drillBest: {}, calls: 0,
-           timer: true, voice: false, quest: { date: "", call: 0, vocab: 0, obj: 0, done: false }, streak: 0, lastDone: "", titles: [], title: "", history: [] };
+           timer: true, voice: false, quest: { date: "", call: 0, vocab: 0, obj: 0, dial: 0, done: false }, streak: 0, lastDone: "", titles: [], title: "", history: [], dials: 0, convos: 0, appts: 0, dialsToday: { date: "", n: 0 }, classes: {} };
 }
 let S = fresh();
 try { const saved = JSON.parse(localStorage.getItem(KEY)); if (saved) S = Object.assign(fresh(), saved); } catch (e) {}
@@ -748,7 +807,7 @@ function record(k, id, score) {
 }
 
 const $ = id => document.getElementById(id);
-function show(id) { ["login", "home", "call", "drill", "results"].forEach(x => $(x).classList.toggle("hidden", x !== id)); window.scrollTo(0, 0); }
+function show(id) { ["login", "home", "call", "drill", "results", "lesson"].forEach(x => $(x).classList.toggle("hidden", x !== id)); window.scrollTo(0, 0); }
 
 // ---------- System popups ----------
 const sysQ = [];
@@ -788,10 +847,10 @@ function checkTitles() {
 }
 function today(off = 0) { const d = new Date(); d.setDate(d.getDate() + off); return d.toLocaleDateString("en-CA"); }
 function questTick(field, n) {
-  if (S.quest.date !== today()) S.quest = { date: today(), call: 0, vocab: 0, obj: 0, done: false };
-  S.quest[field] += n;
+  if (S.quest.date !== today()) S.quest = { date: today(), call: 0, vocab: 0, obj: 0, dial: 0, done: false };
+  S.quest[field] = (S.quest[field] || 0) + n;
   const q = S.quest;
-  if (!q.done && q.call >= 1 && q.vocab >= 5 && q.obj >= 3) {
+  if (!q.done && q.call >= 1 && q.vocab >= 5 && q.obj >= 3 && (q.dial || 0) >= 5) {
     q.done = true;
     S.streak = S.lastDone === today(-1) ? S.streak + 1 : 1;
     S.lastDone = today();
@@ -803,7 +862,7 @@ function questTick(field, n) {
 
 // ---------- Home ----------
 function renderHome() {
-  if (S.quest.date !== today()) S.quest = { date: today(), call: 0, vocab: 0, obj: 0, done: false };
+  if (S.quest.date !== today()) S.quest = { date: today(), call: 0, vocab: 0, obj: 0, dial: 0, done: false };
   const rk = rankOf(S.lvl);
   $("rank").textContent = rk.r; $("rank").style.color = rk.c;
   $("nameIn").value = S.name;
@@ -830,7 +889,7 @@ function renderHome() {
 
   const q = S.quest;
   const line = (label, v, goal) => `<div class="${v >= goal ? "done" : ""}"><span>${v >= goal ? "✓" : "·"} ${label}</span><span>[${Math.min(v, goal)}/${goal}]</span></div>`;
-  $("quest").innerHTML = line("Clear a gate (any grade)", q.call, 1) + line("Correct vocab answers", q.vocab, 5) + line("Objections handled", q.obj, 3) +
+  $("quest").innerHTML = line("Clear a gate (any grade)", q.call, 1) + line("Correct vocab answers", q.vocab, 5) + line("Objections handled", q.obj, 3) + line("Cold call dials", q.dial || 0, 5) +
     (q.done ? `<div class="done"><span>Quest complete. Come back tomorrow.</span></div>` : "");
   $("streak").textContent = S.streak ? "Streak " + S.streak : "";
 
@@ -863,6 +922,8 @@ function renderHome() {
   document.querySelectorAll("#titles .chip").forEach(b => b.onclick = () => { S.title = b.dataset.id; save(); renderHome(); });
 
   renderGrowth();
+  renderArena();
+  renderAcademy();
   setToggle($("timerToggle"), S.timer, "Call timer");
   setToggle($("voiceToggle"), S.voice, "Read lines aloud");
 }
@@ -897,11 +958,12 @@ function runTimer(secs, barEl, numEl, onEnd) {
 // ---------- Call ----------
 let C, turn, deal, trust, picks, clockInt, timerInt, startedAt, insightLeft, curOpts;
 
-function startCall(id) {
-  C = CALLS.find(c => c.id === id);
+function startCall(id) { beginCall(CALLS.find(c => c.id === id)); }
+function beginCall(c) {
+  C = c;
   turn = 0; picks = [];
   deal = 50 + Math.min(10, bonus(S.stats.ANC, 5));
-  trust = 50 + Math.min(10, bonus(S.stats.RAP, 5));
+  trust = clamp(50 + Math.min(10, bonus(S.stats.RAP, 5)) + (C.trustAdj || 0));
   insightLeft = Math.min(3, bonus(S.stats.LST, 10));
   $("cRank").textContent = C.rank; $("cRank").style.color = rankColor(C.rank);
   $("cName").textContent = C.name; $("cRole").textContent = C.role; $("cBrief").textContent = C.brief;
@@ -940,7 +1002,7 @@ function renderTurn() {
   speak(T.say);
   clearInterval(timerInt);
   $("timerRow").classList.toggle("hidden", !S.timer);
-  if (S.timer) timerInt = runTimer(Math.min(30, 20 + bonus(S.stats.CMP, 5)), $("timerBar"), $("timerNum"), () => choose(null, null));
+  if (S.timer) timerInt = runTimer(Math.min(30, 20 + bonus(S.stats.CMP, 5)) + (C.timeAdj || 0), $("timerBar"), $("timerNum"), () => choose(null, null));
 }
 
 $("insightBtn").onclick = () => {
@@ -971,7 +1033,7 @@ function choose(o, btn) {
   fb.className = "feedback " + o.q;
   fb.innerHTML = `<span class="tag">${labels[o.q]} · ${o.s}</span><div>${o.f}</div><div class="muted num" style="font-size:13px">Deal ${sign(o.d)} · Trust ${sign(o.r)}</div>`;
   $("after").classList.remove("hidden");
-  $("nextBtn").textContent = turn === C.turns.length - 1 ? "End call" : "Next";
+  $("nextBtn").textContent = turn === C.turns.length - 1 ? (C.vm ? "Finish voicemail" : "End call") : "Next";
   $("after").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 $("nextBtn").onclick = () => { turn++; if (turn < C.turns.length) { renderTurn(); window.scrollTo(0, 0); } else endCall(false); };
@@ -980,6 +1042,8 @@ $("hangBtn").onclick = () => endCall(true);
 function endCall(hungUp) {
   clearInterval(timerInt); clearInterval(clockInt);
   try { speechSynthesis.cancel(); } catch (e) {}
+  if (C.cold) return endCold(hungUp);
+  $("retryBtn").textContent = "Run it again";
   let score = Math.round(deal * 0.6 + trust * 0.4);
   if (hungUp) score = Math.min(score, 40);
   const g = gradeOf(score);
@@ -1102,16 +1166,19 @@ const OBJECTIONS = [
 ];
 
 let D, dIdx, dItems, dCorrect, dTimer, dOpts, dRight;
+let QL = null;
 function startDrill(type) {
   D = type; dIdx = 0; dCorrect = 0; dRight = [];
-  if (type === "tech") {
+  if (type === "quiz") {
+    dItems = QL.quiz.slice();
+  } else if (type === "tech") {
     const pool = [];
     TECH.filter(t => t.lvl <= S.lvl).forEach(t => t.d.forEach(([them, you]) => pool.push({ tech: t, them, you })));
     dItems = shuffle(pool).slice(0, 6);
   } else dItems = shuffle(type === "vocab" ? VOCAB : OBJECTIONS).slice(0, type === "vocab" ? 8 : 6);
-  $("dIcon").textContent = { vocab: "V", obj: "H", tech: "M" }[type];
-  $("dTitle").textContent = { vocab: "Vocabulary Drill", obj: "Objection Gauntlet", tech: "Mentor Trials" }[type];
-  $("dPrompt").textContent = { vocab: "Pick the strongest replacement for the highlighted words.", obj: "They just said this. Pick your best response before time runs out.", tech: "Which technique is \"You\" using?" }[type];
+  $("dIcon").textContent = { vocab: "V", obj: "H", tech: "M", quiz: "Q" }[type];
+  $("dTitle").textContent = type === "quiz" ? QL.n + " · Quiz" : { vocab: "Vocabulary Drill", obj: "Objection Gauntlet", tech: "Mentor Trials" }[type];
+  $("dPrompt").textContent = { vocab: "Pick the strongest replacement for the highlighted words.", obj: "They just said this. Pick your best response before time runs out.", tech: "Which technique is \"You\" using?", quiz: "Pass with 2 of 3 correct." }[type];
   show("drill"); renderDrill();
 }
 function esc(s) { return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
@@ -1119,7 +1186,10 @@ function renderDrill() {
   const it = dItems[dIdx];
   $("dProgress").textContent = `Round ${dIdx + 1} of ${dItems.length} · ${dCorrect} correct`;
   $("dAfter").classList.add("hidden");
-  if (D === "tech") {
+  if (D === "quiz") {
+    $("dLine").textContent = it.q;
+    dOpts = shuffle(it.o.map((t, i) => ({ t, q: i === 0 ? "best" : "bad" })));
+  } else if (D === "tech") {
     $("dLine").innerHTML = `<span class="muted">Them:</span> ${esc(it.them)}<br><b>You:</b> ${esc(it.you)}`;
     const others = shuffle(TECH.filter(t => t.lvl <= S.lvl && t.id !== it.tech.id)).slice(0, 3);
     dOpts = shuffle([{ t: it.tech.n, q: "best" }, ...others.map(t => ({ t: t.n, q: "bad" }))]);
@@ -1152,18 +1222,21 @@ function drillPick(o, btn) {
   const fb = $("dFeedback");
   fb.className = "feedback " + q;
   const tag = !o ? "Time's up" : ok ? "Correct" : q === "good" ? "Okay, not best" : "Weak";
-  fb.innerHTML = `<span class="tag">${tag}</span><div>${D === "tech" ? `<b>${esc(it.tech.n)}</b> (${it.tech.m}). ${esc(it.tech.what)}` : esc(it.f)}</div>`;
+  fb.innerHTML = `<span class="tag">${tag}</span><div>${D === "quiz" ? (ok ? "Right." : "Answer: " + esc(it.o[0])) : D === "tech" ? `<b>${esc(it.tech.n)}</b> (${it.tech.m}). ${esc(it.tech.what)}` : esc(it.f)}</div>`;
   $("dAfter").classList.remove("hidden");
   $("dNext").textContent = dIdx === dItems.length - 1 ? "Finish" : "Next";
   $("dProgress").textContent = `Round ${dIdx + 1} of ${dItems.length} · ${dCorrect} correct`;
 }
 $("dNext").onclick = () => { dIdx++; if (dIdx < dItems.length) { renderDrill(); window.scrollTo(0, 0); } else endDrill(); };
 $("dQuit").onclick = () => { clearInterval(dTimer); renderHome(); show("home"); };
+$("dialBtn").onclick = () => startCold();
 $("vocabBtn").onclick = () => startDrill("vocab");
 $("objBtn").onclick = () => startDrill("obj");
 $("techBtn").onclick = () => startDrill("tech");
 
 function endDrill() {
+  if (D === "quiz") return endQuiz();
+  $("retryBtn").textContent = "Run it again";
   const n = dItems.length, pct = dCorrect / n * 100;
   const g = gradeOf(pct);
   const stat = D === "vocab" ? "VOC" : "HDL";
@@ -1198,6 +1271,430 @@ function endDrill() {
     ? `<li><b>${esc(it.s.match(/\[(.+?)\]/)[1])} → ${esc(it.o[0])}</b><br>${esc(it.f)}</li>`
     : `<li><b>“${esc(it.s)}”</b><br>${esc(it.o.find(x => x.q === "best").t)}</li>`).join("");
   retry = () => startDrill(D);
+  show("results"); flushSys();
+}
+
+// ---------- Cold Call Arena ----------
+const FIRST = ["Sam", "Maria", "James", "Keisha", "Tony", "Linda", "Raj", "Carmen", "Doug", "Mei", "Andre", "Patty", "Luis", "Grace", "Hank", "Nina", "Omar", "Beth", "Victor", "Tasha"];
+const LAST = ["Nguyen", "Garcia", "Miller", "Johnson", "Patel", "Brooks", "Rivera", "Kim", "Walsh", "Coleman", "Ortiz", "Reed", "Hughes", "Diaz", "Foster"];
+const STREETS = ["Elm St", "Maple Ct", "Birch Ave", "Cedar Ln", "Oak Ridge Dr", "Willow Way", "Pine Hollow Rd", "Aspen Pl", "Harbor View Dr", "Sycamore St"];
+const PERSONAS = [
+  { id: "friendly",  n: "Friendly",  rank: "E", trust: 5,   time: 0,  mult: 1,    pick: "Hello, this is {name}!" },
+  { id: "rushed",    n: "Rushed",    rank: "D", trust: 0,   time: -6, mult: 1.1,  pick: "Yeah, {name} here. I've got about a minute." },
+  { id: "skeptical", n: "Skeptical", rank: "C", trust: -5,  time: 0,  mult: 1.15, pick: "Who is this? How did you get my number?" },
+  { id: "hostile",   n: "Hostile",   rank: "B", trust: -10, time: -3, mult: 1.3,  pick: "If this is another sales call, I'm hanging up." }
+];
+const O = (t, q, d, r, s, f) => ({ t, q, d, r, s, f });
+const LEADS = [
+{ id: "expired", n: "Expired listing", brief: "{name}'s listing on {street} expired yesterday after 112 days. They've had agent calls all morning. Goal: book an appointment.",
+  open: [
+    O("Hi {name}, this is {me}, a local agent, calling about your home on {street}. You've probably had a lot of agent calls today. Is it a bad time for one quick question?", "best", 6, 8, "Rapport", "You named the obvious (an accusation audit) and asked a no-oriented question, so they feel in control."),
+    O("Hi, I saw your home came off the market and wanted to see if you're still interested in selling.", "good", 3, 0, "Closing", "Clear, but you sound like every other caller today."),
+    O("Hi! Great news, I have buyers for your home!", "bad", -4, -8, "Rapport", "Expired sellers have heard this one all morning. Unless it's true, it destroys trust.") ],
+  disc: { say: "I guess. It just didn't sell. I don't even know what happened.", o: [
+    O("If it had sold, where would you be moving to?", "best", 8, 6, "Listening", "Find the motivation first. It's the reason they'll take a meeting."),
+    O("What do you think got in the way?", "good", 4, 2, "Listening", "Fair question. Motivation comes first, though."),
+    O("It was overpriced. That's always why.", "bad", -2, -8, "Rapport", "They chose that price. You just told them they were wrong.") ] },
+  obj: [
+    { say: "I think I'll take a break and relist in the spring.", o: [
+      O("That's an option. What would waiting until spring cost you, with the move you mentioned?", "best", 8, 4, "Listening", "A calibrated question lets them weigh the cost of waiting themselves."),
+      O("Spring is a busy season. That could work.", "good", 0, 2, "Rapport", "Agreeable, but you just talked yourself out of an appointment."),
+      O("Spring will have way more competition.", "bad", -2, -4, "Handling", "Scare tactics make people defensive.") ] },
+    { say: "I'm going to relist with the same agent.", o: [
+      O("It sounds like you like them. What will they do differently this time?", "best", 8, 6, "Listening", "A label plus a calibrated question. Let them notice the gap."),
+      O("Okay. If anything changes, here's my number.", "good", -4, 2, "Composure", "Polite, but you folded on the first objection."),
+      O("They had their chance.", "bad", -4, -8, "Rapport", "Attacking their choice makes them defend it.") ] },
+    { say: "Agents all promised me the moon. Why would you be any different?", o: [
+      O("I can't promise anything until I see the house and the numbers. Would it be crazy to spend 20 minutes finding out why it didn't sell?", "best", 8, 6, "Closing", "Honest, specific and low risk, with a no-oriented ask."),
+      O("My listings sell in 9 days on average.", "good", 4, 0, "Anchoring", "Good proof, but it's still a promise to someone who's tired of promises."),
+      O("I'm just better than your last agent.", "bad", -4, -6, "Rapport", "That's exactly what the last agent said.") ] } ],
+  close: { say: "Okay... what would that even look like?", o: [
+    O("I'll come by with the showing feedback and the homes that did sell. Is Tuesday at 4 or Wednesday at 10 better?", "best", 10, 4, "Closing", "A specific value promise and two time options."),
+    O("I'll email you a market report.", "good", -2, 2, "Closing", "Emails get buried. Book the meeting."),
+    O("Let's just sign the paperwork and get it relisted.", "bad", -6, -6, "Closing", "Way too fast. Earn the meeting first.") ] } },
+
+{ id: "fsbo", n: "For sale by owner", brief: "{name} is selling the home on {street} without an agent. The sign has been up three weeks. Goal: book a meeting.",
+  open: [
+    O("Hi {name}, this is {me}, a local agent. I'm not calling to list your home. Are you open to buyers who work with an agent?", "best", 6, 8, "Rapport", "You took away the threat, then asked an easy question."),
+    O("Hi, I saw your sign and wanted to introduce myself.", "good", 2, 0, "Rapport", "Friendly, but no reason for them to keep talking."),
+    O("You know most FSBOs end up listing, right?", "bad", -2, -10, "Rapport", "Predicting their failure ends the call.") ],
+  disc: { say: "Maybe. If they pay your fee.", o: [
+    O("Fair enough. How's it going so far, selling it yourself?", "best", 8, 6, "Listening", "Get them talking about their experience. The pain points come out on their own."),
+    O("The buyer's agent fee is usually negotiable.", "good", 2, 0, "Anchoring", "True, but you're talking money before value."),
+    O("Most buyers expect the seller to pay that.", "bad", -2, -6, "Handling", "Sounds like a lecture.") ] },
+  obj: [
+    { say: "I'm saving thousands doing this myself.", o: [
+      O("That makes sense. Would it help to see what similar homes netted with and without an agent, so you decide on real numbers?", "best", 8, 6, "Anchoring", "Objective criteria. Let the numbers argue for you."),
+      O("That's a lot of money. I get it.", "good", 0, 4, "Rapport", "Empathetic, but it goes nowhere."),
+      O("You'll lose more than that on price.", "bad", -2, -8, "Handling", "Maybe true, but it sounds like a threat.") ] },
+    { say: "I've had plenty of calls.", o: [
+      O("That's great. How many of those calls turned into real showings?", "best", 8, 4, "Listening", "A calibrated question that surfaces the gap."),
+      O("Any offers yet?", "good", 4, 0, "Listening", "Fine, but it's a yes/no question."),
+      O("Calls don't mean anything.", "bad", -4, -6, "Rapport", "Dismissive.") ] },
+    { say: "I don't need an agent. I've sold a house before.", o: [
+      O("Then you know how much work it is. What was the hardest part last time?", "best", 8, 6, "Rapport", "Respect their experience and let them remember the pain."),
+      O("A lot has changed since then.", "good", 2, -2, "Handling", "Possibly true, but vague."),
+      O("The market's a lot harder than you think.", "bad", -2, -6, "Rapport", "Condescending.") ] } ],
+  close: { say: "Honestly, the no-shows are driving me nuts.", o: [
+    O("That sounds exhausting. Would it be a bad idea if I stopped by Thursday with what nearby homes actually sold for? Fifteen minutes, no strings.", "best", 10, 6, "Closing", "Label, then a no-oriented ask with real value."),
+    O("Here's my number in case you change your mind.", "good", -4, 2, "Closing", "You left without an appointment."),
+    O("So should I bring a listing agreement?", "bad", -6, -6, "Closing", "Too big a jump.") ] } },
+
+{ id: "justsold", n: "Just-sold neighbor", brief: "You just sold a home on {street}. You're calling the neighbors. Goal: book a home value consultation.",
+  open: [
+    O("Hi {name}, this is {me}. I'm the agent who just sold the home a few doors down on {street}. Is now a bad time for 30 seconds?", "best", 6, 6, "Rapport", "A local, relevant reason to call, plus permission."),
+    O("Hi, I'm calling to see if you're thinking of selling.", "good", 0, -2, "Closing", "Straight to the ask with no reason to care."),
+    O("Hi! Do you want to know what your house is worth?!", "bad", -2, -6, "Rapport", "Sounds like a robocall.") ],
+  disc: { say: "Oh, the blue one? What did it go for?", o: [
+    O("It sold in 6 days with 4 offers. I'll share the final price once it's public. Have you been following prices on your street?", "best", 8, 6, "Anchoring", "Know your numbers and share what you properly can. Then turn it back to them."),
+    O("I can't say, but it went fast.", "good", 2, 0, "Anchoring", "Okay, but you missed a chance to engage."),
+    O("More than yours would, probably!", "bad", -4, -8, "Rapport", "A joke at their expense.") ] },
+  obj: [
+    { say: "We're not planning to move.", o: [
+      O("Totally fine. If you ever did move, where would you go?", "best", 8, 6, "Listening", "A hypothetical question opens a door without pressure."),
+      O("Okay, I'll keep you posted on sales nearby.", "good", 2, 4, "Rapport", "A decent long-term touch."),
+      O("Everyone says that until they move.", "bad", -2, -6, "Handling", "Dismissive.") ] },
+    { say: "Are you just calling everyone on the street?", o: [
+      O("I am. I had more buyers than homes for that sale, so I'm checking whether anyone nearby is thinking of moving.", "best", 8, 6, "Rapport", "Honesty plus social proof."),
+      O("Just a few people.", "good", 0, -2, "Composure", "Vague answers sound evasive."),
+      O("No, just you!", "bad", -2, -6, "Rapport", "An easy lie to catch.") ] },
+    { say: "We might sell in a couple of years.", o: [
+      O("That's good to know. What would need to happen for that to move up?", "best", 8, 4, "Listening", "Find the trigger event."),
+      O("I'll check back in two years.", "good", -2, 2, "Closing", "Too long between touches."),
+      O("Prices might drop by then.", "bad", -2, -6, "Handling", "Fear selling.") ] } ],
+  close: { say: "Huh. I guess I'm a little curious what ours is worth.", o: [
+    O("I can show you in 15 minutes. Is Saturday morning or Monday after work better?", "best", 10, 4, "Closing", "Small ask, two options."),
+    O("I'll send you an online estimate.", "good", -2, 2, "Closing", "An algorithm can't book the meeting for you."),
+    O("Probably around $500k. Talk soon!", "bad", -4, -2, "Closing", "You guessed and gave away the reason to meet.") ] } },
+
+{ id: "sphere", n: "Past client", pick: { friendly: "{me}! Wow, it's been forever!", rushed: "Oh, hey {me}. I've only got a minute.", skeptical: "Oh... {me}. Is this a sales call?", hostile: "{me}? I haven't heard from you in a year. What do you want?" }, brief: "{name} bought a home with you four years ago. You haven't talked in over a year. Goal: reconnect and book a sit-down.",
+  open: [
+    O("Hi {name}, it's {me}! It's been way too long, and that's on me. How's the house treating you?", "best", 6, 10, "Rapport", "Own the gap and make it about them."),
+    O("Hi {name}, just checking in!", "good", 2, 2, "Rapport", "Friendly, but generic."),
+    O("Hi, do you know anyone looking to buy or sell?", "bad", -4, -6, "Rapport", "A year of silence, then an ask.") ],
+  disc: { say: "Good! The kids are growing fast though. It's getting a little tight in here.", o: [
+    O("Getting a little tight?", "best", 8, 6, "Listening", "A mirror. Let them tell you more."),
+    O("Ha, kids do that. Anything else new?", "good", 2, 4, "Rapport", "Warm, but you stepped past a buying signal."),
+    O("You should totally sell and upgrade!", "bad", -2, -6, "Closing", "Too pushy, too soon.") ] },
+  obj: [
+    { say: "We'd love more space, but rates are so high.", o: [
+      O("It sounds like you feel stuck between space and payment. What if we looked at what your equity could do first?", "best", 8, 6, "Rapport", "A label, then a fresh option."),
+      O("Rates might drop next year.", "good", 0, 2, "Handling", "Speculation isn't a plan."),
+      O("Rates are never coming back down.", "bad", -4, -4, "Handling", "Nobody knows that.") ] },
+    { say: "We'd probably just call you when we're ready.", o: [
+      O("I'd love that. Would it hurt to get a quick equity snapshot now, so you know your options when you are?", "best", 8, 4, "Closing", "A no-oriented, low-stakes next step."),
+      O("Sounds good!", "good", -4, 4, "Closing", "Nice, but nothing on the calendar."),
+      O("Don't wait too long!", "bad", -2, -4, "Handling", "Pressure.") ] },
+    { say: "My brother-in-law just got his real estate license.", o: [
+      O("That's great for him. Would it be a bad idea to get a second opinion on numbers, so you can compare?", "best", 6, 6, "Rapport", "Don't fight family. Offer value alongside."),
+      O("Okay, no problem.", "good", -6, 2, "Composure", "You gave up a past client without a word."),
+      O("Newer agents make a lot of mistakes.", "bad", -4, -8, "Rapport", "Insulting their family.") ] } ],
+  close: { say: "Okay, yeah. I'd like to know what we've got.", o: [
+    O("Let's do it. I'll bring the numbers to you. Is Thursday evening or Saturday morning better?", "best", 10, 4, "Closing", "Two options, and you come to them."),
+    O("I'll email you something this week.", "good", -2, 2, "Closing", "Turn interest into a meeting."),
+    O("Great, I'll put you down as a listing!", "bad", -6, -6, "Closing", "They agreed to numbers, not a listing.") ] } },
+
+{ id: "oldlead", n: "Old internet lead", brief: "{name} asked about homes near {street} online six months ago and never answered follow-ups. Goal: revive the lead and book a consult.",
+  open: [
+    O("Hi {name}, it's {me}. You asked about homes near {street} a while back. Have you given up on moving?", "best", 8, 6, "Closing", "A no-oriented question that's hard to ignore. People rush to correct it."),
+    O("Hi, just following up on your inquiry.", "good", 2, 0, "Closing", "Forgettable."),
+    O("Hi! Are you ready to buy now?", "bad", -4, -4, "Closing", "Pressure on the first line.") ],
+  disc: { say: "No, not given up. We got busy, and the prices scared us off.", o: [
+    O("It sounds like you're worried about overpaying in this market.", "best", 6, 8, "Rapport", "Label the fear behind the stall."),
+    O("Prices have leveled off a bit lately.", "good", 4, 0, "Anchoring", "Useful data, but connect first."),
+    O("Prices are only going up, so you'd better buy now.", "bad", -2, -6, "Handling", "Classic pressure line. Nobody believes it.") ] },
+  obj: [
+    { say: "We're already working with another agent.", o: [
+      O("Glad you have help. If you've signed with them, I'll step back. Have you?", "best", 6, 8, "Composure", "Respecting another agent's agreement is the professional move, and it builds trust either way."),
+      O("Okay, good luck!", "good", -6, 2, "Composure", "Polite, but you didn't learn whether they're actually committed."),
+      O("I can get you a better deal than they can.", "bad", -4, -8, "Rapport", "Unprofessional, and possibly an ethics problem.") ] },
+    { say: "We need to save more for a down payment first.", o: [
+      O("What number are you aiming for? Some loan programs need as little as 3 to 3.5% down.", "best", 8, 6, "Listening", "Find the real gap, then share facts they may not know."),
+      O("Let me connect you with a lender.", "good", 6, 2, "Closing", "A good move, but ask about their numbers first."),
+      O("You can't afford to wait.", "bad", -2, -6, "Handling", "Pressure, not help.") ] },
+    { say: "Just send me listings.", o: [
+      O("Happy to. So I send the right ones, what are the must-haves, and what would make you jump on one?", "best", 8, 6, "Listening", "Turn a brush-off into a needs conversation."),
+      O("Sure, I'll set up an automatic search.", "good", 2, 2, "Closing", "Fine, but you've become a robot."),
+      O("I don't really do that.", "bad", -4, -6, "Rapport", "Then they'll find someone who does.") ] } ],
+  close: { say: "Okay. Maybe it's worth looking again.", o: [
+    O("Let's start with a 20-minute call with a lender and me, so you know your real number. Tuesday or Thursday evening?", "best", 10, 4, "Closing", "A concrete first step with two options."),
+    O("I'll send you some homes.", "good", 0, 2, "Closing", "Interest without a plan fades."),
+    O("Let's go see 10 houses this weekend!", "bad", -4, -2, "Closing", "Too much, too fast, with no budget yet.") ] } },
+
+{ id: "absentee", n: "Absentee owner", brief: "{name} lives out of state and owns a rental on {street}. You've never spoken. Goal: book a video call.",
+  open: [
+    O("Hi {name}, this is {me}, a local agent near your property on {street}. Is it a bad time for a quick question about it?", "best", 6, 6, "Rapport", "Relevant, local and respectful."),
+    O("Hi, would you sell your rental?", "good", 2, -2, "Closing", "Blunt. No context."),
+    O("Hi, I've got a cash investor who wants your property!", "bad", -4, -6, "Rapport", "Only say it if it's true, and even then it sounds like a pitch.") ],
+  disc: { say: "What about it? It's rented right now.", o: [
+    O("How has it been, owning a rental from out of state?", "best", 8, 6, "Listening", "Open question. Let them share the headaches."),
+    O("Rents have gone up a lot around here.", "good", 4, 2, "Anchoring", "Useful data, but ask first."),
+    O("Long-distance landlording is a nightmare, right?", "bad", -2, -4, "Rapport", "A leading question. They feel judged.") ] },
+  obj: [
+    { say: "The tenant's lease runs another 8 months.", o: [
+      O("That helps. Would it be worth knowing what it'd sell for with the tenant in place versus vacant, so you can plan?", "best", 8, 6, "Anchoring", "Give them options and data."),
+      O("We can wait until the lease ends.", "good", 2, 2, "Composure", "Fine, but stay in touch with value."),
+      O("Tenants can always be moved out.", "bad", -6, -10, "Rapport", "That sounds like ignoring a tenant's rights. Never go there.") ] },
+    { say: "I don't want to pay capital gains tax.", o: [
+      O("That's a real concern. Have you talked to a tax advisor about a 1031 exchange? I can share how other investors have used one.", "best", 8, 6, "Listening", "Point to the right professional and add value. Don't give tax advice yourself."),
+      O("Taxes are just part of selling.", "good", 0, -2, "Handling", "True, but unhelpful."),
+      O("Don't worry about the taxes.", "bad", -4, -6, "Handling", "Careless, and outside your expertise.") ] },
+    { say: "My property manager handles everything.", o: [
+      O("Sounds like that's working. What would make you want to sell, if anything?", "best", 8, 6, "Listening", "Find the trigger."),
+      O("Could I get their number?", "good", 2, 0, "Closing", "Odd ask on a first call."),
+      O("Property managers take a big cut.", "bad", -2, -4, "Handling", "Criticizing their setup.") ] } ],
+  close: { say: "I've thought about cashing out at some point.", o: [
+    O("Would it be unreasonable to do a 15-minute video call next week? I'll show you current value and rent comps. Tuesday or Wednesday?", "best", 10, 4, "Closing", "Remote-friendly, no-oriented and specific."),
+    O("I'll email you a value estimate.", "good", -2, 2, "Closing", "Get on a call."),
+    O("Now's the time! Let's list it.", "bad", -6, -4, "Closing", "They said \"at some point.\"") ] } }
+];
+const VM = [
+  O("\"Hi {name}, it's {me}, with a quick question about {street}. My number is 555-0142. Again, 555-0142.\"", "best", 0, 0, "Vocabulary", "Short, specific, a reason to call back, and the number said twice."),
+  O("\"Hi {name}, this is {me}! I'd love to tell you all about the services I offer, my marketing plan, my awards…\" (90 seconds)", "good", 0, 0, "Vocabulary", "Too long. Nobody listens past 20 seconds."),
+  O("(Hang up without a message)", "bad", 0, 0, "Composure", "Sometimes fine, but a short voicemail is a free touch.") ];
+
+function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+function fill(t, v) { return t.replace(/\{(\w+)\}/g, (m, k) => v[k] ?? m); }
+function fillOpt(o, v) { return Object.assign({}, o, { t: fill(o.t, v), f: fill(o.f, v) }); }
+
+function startCold() {
+  const lead = pick(LEADS), per = pick(PERSONAS);
+  const first = pick(FIRST), v = { name: first, street: pick(STREETS), me: S.name || "me" };
+  const full = first + " " + pick(LAST);
+  const vm = Math.random() < 0.22;
+  const turns = vm
+    ? [{ say: fill("Hi, you've reached {name}. Leave a message after the tone.", v), opts: VM.map(o => fillOpt(o, v)) }]
+    : [
+        { say: fill((lead.pick && lead.pick[per.id]) || per.pick, v), opts: lead.open.map(o => fillOpt(o, v)) },
+        { say: fill(lead.disc.say, v), opts: lead.disc.o.map(o => fillOpt(o, v)) },
+        (o => ({ say: fill(o.say, v), opts: o.o.map(x => fillOpt(x, v)) }))(pick(lead.obj)),
+        { say: fill(lead.close.say, v), opts: lead.close.o.map(o => fillOpt(o, v)) }
+      ];
+  beginCall({ id: "cold", cold: true, vm, lead, per, name: full, init: first[0] + full.split(" ")[1][0],
+    role: lead.n + " · " + (vm ? "No answer" : per.n),
+    title: lead.n, rank: vm ? "E" : per.rank, brief: fill(lead.brief, v) + (vm ? "" : ` Personality: ${per.n}.`),
+    trustAdj: vm ? 0 : per.trust, timeAdj: vm ? 0 : per.time, turns });
+}
+
+function endCold(hungUp) {
+  if (S.dialsToday.date !== today()) S.dialsToday = { date: today(), n: 0 };
+  S.dials++; S.dialsToday.n++;
+  questTick("dial", 1);
+  $("retryBtn").textContent = "Next dial";
+  retry = startCold;
+  $("rLessonHead").textContent = "Lines to remember";
+  if (C.vm) {
+    const p = picks[0], good = p && p.q === "best";
+    const xp = good ? 10 : 4;
+    if (good) train("VOC", 1);
+    gainXP(xp); checkTitles(); save();
+    $("rHead").textContent = "Voicemail · dial #" + S.dials;
+    $("rGrade").textContent = good ? "A" : "C";
+    $("rVerdict").textContent = good ? "Clean voicemail. On to the next dial." : "Keep voicemails under 20 seconds with one reason to call back.";
+    $("rA").textContent = S.dialsToday.n; $("rAl").textContent = "Dials today";
+    $("rB").textContent = S.appts; $("rBl").textContent = "Appts total";
+    $("rXP").textContent = "+" + xp;
+    showGains(good ? { VOC: 1 } : {});
+    $("rLessons").innerHTML = `<li><b>Voicemail script</b><br>${esc(C.turns[0].opts.find(o => o.q === "best").t)}</li>`;
+    show("results"); flushSys(); return;
+  }
+  let score = Math.round(deal * 0.6 + trust * 0.4);
+  const talked = picks.length >= 2;
+  if (talked) S.convos++;
+  const last = picks[picks.length - 1];
+  const appt = !hungUp && picks.length === C.turns.length && last.q === "best" && trust >= 50;
+  if (appt) S.appts++;
+  if (hungUp) score = Math.min(score, 40);
+  const g = gradeOf(score);
+  const gains = {};
+  picks.forEach(p => { const k = SKILL_KEY[p.s] || (p.s === "Handling" ? "HDL" : p.s === "Vocabulary" ? "VOC" : null); if (k && p.q === "best") gains[k] = (gains[k] || 0) + 1; });
+  if (appt) gains.CLS = (gains.CLS || 0) + 1;
+  Object.entries(gains).forEach(([k, n]) => train(k, n));
+  const xp = hungUp ? 5 : Math.round((score * 0.6 + (appt ? 40 : 0)) * C.per.mult * (S.timer ? 1.2 : 1));
+  if (!hungUp) record("cold", C.lead.id, score);
+  gainXP(xp); checkTitles(); save();
+
+  $("rHead").textContent = (appt ? "Appointment set ✓" : "No appointment") + " · dial #" + S.dials;
+  $("rGrade").textContent = g;
+  $("rVerdict").textContent = hungUp ? "You hung up. Log it and dial the next one." : appt
+    ? `${C.per.n} ${C.lead.n.toLowerCase()} booked. That's how it's done.`
+    : "No meeting this time. Every no gets you closer. Review the lines below.";
+  $("rA").textContent = S.dialsToday.n; $("rAl").textContent = "Dials today";
+  $("rB").textContent = S.appts; $("rBl").textContent = "Appts total";
+  $("rXP").textContent = "+" + xp;
+  showGains(gains);
+  $("rLessons").innerHTML = C.turns.map((T, i) => {
+    const best = T.opts.find(o => o.q === "best"), mine = picks[i];
+    if (!mine) return "";
+    return `<li><b>Turn ${i + 1} · ${best.s}</b><br>${mine.q === "best" ? "You nailed it: " : "Stronger line: "}“${esc(best.t)}”</li>`;
+  }).join("");
+  show("results"); flushSys();
+}
+
+function renderArena() {
+  const td = S.dialsToday.date === today() ? S.dialsToday.n : 0;
+  $("arenaToday").textContent = td + " dials today";
+  $("aDials").textContent = S.dials; $("aConvos").textContent = S.convos; $("aAppts").textContent = S.appts;
+  $("aConv").textContent = S.convos ? Math.round(S.appts / S.convos * 100) + "%" : "0%";
+}
+
+// ---------- Academy ----------
+const COURSES = [
+  { id: "cc", n: "Cold Calling Fundamentals", src: "Prospecting habits in the style of Tom Ferry's coaching", stat: "CLS", lessons: [
+    { id: "cc1", n: "The mindset of the dial",
+      body: ["Cold calling is a numbers game you control. You can't control who says yes. You control how many dials you make, how prepared you are and how you sound.",
+             "Block the same time every day for calls, before email and busywork. Treat it like a client appointment you can't cancel.",
+             "Track three numbers after every session: dials, conversations and appointments. Over a few weeks you'll learn your own ratios, and then you'll know exactly how many dials one appointment takes.",
+             "Expect most calls to end in no. A no isn't personal. It's one step closer to a yes."],
+      script: "Example tracker: 50 dials → 10 conversations → 1 appointment. Your ratios will differ. Track them.",
+      quiz: [
+        { q: "What should you track after every calling session?", o: ["Dials, conversations and appointments", "Only appointments", "How you felt about it"] },
+        { q: "When is the best time to prospect?", o: ["In a protected daily block, before email", "Whenever you have a free moment", "After everything else is done"] },
+        { q: "Someone says no and hangs up. Best response?", o: ["Log it and dial the next number", "Call back and ask why", "Stop for the day"] } ] },
+    { id: "cc2", n: "Openers that earn 30 seconds",
+      body: ["The first ten seconds decide the call. Say who you are, why you're calling them specifically, and ask permission in a way that lowers their guard.",
+             "A no-oriented question such as \"Is now a bad time?\" lets them feel safe and in control. Saying no feels protective, so they relax.",
+             "Skip \"How are you today?\" and fake excitement. Both signal a sales call instantly."],
+      script: "\"Hi Sam, it's Dev, a local agent, with a quick question about your home on Elm. Is now a bad time?\"",
+      quiz: [
+        { q: "Which opener is strongest?", o: ["\"Hi Sam, it's Dev, a local agent, with a quick question about your home on Elm. Is now a bad time?\"", "\"Hi Sam, how are you doing today?\"", "\"Hi Sam, I have amazing news for you!\""] },
+        { q: "Why does \"Is now a bad time?\" work?", o: ["Saying no makes people feel safe and in control", "It's shorter", "It forces a yes"] },
+        { q: "The three parts of a strong opener are:", o: ["Who you are, why them, and a permission question", "Name, company and a pitch", "A compliment, a joke and a question"] } ] },
+    { id: "cc3", n: "Booking the appointment",
+      body: ["A good conversation with no next step is a lost lead. Ask for the appointment directly, with two specific times.",
+             "If they hesitate, shrink the ask: 15 minutes, a video call, or a market snapshot dropped off in person.",
+             "Confirm by text right after the call, with the day, time and what you'll bring."],
+      script: "\"Is Tuesday at 4 or Wednesday at 10 better for 15 minutes?\"",
+      quiz: [
+        { q: "Best way to ask for the meeting?", o: ["\"Is Tuesday at 4 or Wednesday at 10 better?\"", "\"Let me know when you're free.\"", "\"Can I call you sometime?\""] },
+        { q: "They hesitate. What do you do?", o: ["Shrink the ask, such as 15 minutes or a video call", "Push harder", "Say goodbye"] },
+        { q: "Right after booking, you should:", o: ["Text a confirmation with the day, time and what you'll bring", "Wait for them to call", "Email a contract"] } ] } ] },
+  { id: "te", n: "Tactical Empathy", src: "Techniques from Chris Voss, Never Split the Difference", stat: "RAP", lessons: [
+    { id: "te1", n: "Mirrors",
+      body: ["Repeat the last one to three important words they said, as a question. Then stay silent for a few seconds.",
+             "People naturally expand on what they just said, and often reveal what really matters: a deadline, a fear, a second offer.",
+             "It feels awkward at first. Practice it in everyday conversations until it's natural."],
+      script: "Them: \"We'd only sell if the price is right.\" You: \"If the price is right?\" (silence)",
+      quiz: [
+        { q: "Seller: \"We'd only sell if the price is right.\" Which is a mirror?", o: ["\"If the price is right?\"", "\"What's the right price?\"", "\"Everyone says that.\""] },
+        { q: "After a mirror, you should:", o: ["Stay quiet and let them talk", "Ask another question right away", "Explain your point"] },
+        { q: "A mirror is usually:", o: ["The last one to three words they said", "A full summary", "Your own opinion"] } ] },
+    { id: "te2", n: "Labels and the accusation audit",
+      body: ["Labels name the emotion you sense: \"It sounds like…\", \"It seems like…\", \"It looks like…\". Leave yourself out of it. \"I hear you saying\" puts the focus on you.",
+             "An accusation audit lists the negative things they might be thinking about you, before they say them. Spoken out loud, those thoughts lose their power.",
+             "Use it before bad news: price reductions, low appraisals, or a fee conversation."],
+      script: "\"You're probably thinking I overpromised and I'm about to ask you to give away money. Is that fair?\"",
+      quiz: [
+        { q: "Which is the best label?", o: ["\"It sounds like you've been let down before.\"", "\"I understand how you feel.\"", "\"I hear that you're upset.\""] },
+        { q: "An accusation audit is:", o: ["Naming the negatives they might think about you, first", "Accusing them of lowballing", "Auditing their finances"] },
+        { q: "Why avoid \"I hear you saying…\"?", o: ["It puts the focus on you, not them", "It's too short", "It's illegal"] } ] },
+    { id: "te3", n: "Calibrated questions and \"That's right\"",
+      body: ["\"What\" and \"how\" questions give the other side a feeling of control while they work on your problem.",
+             "\"How am I supposed to do that?\" is a polite no that makes them reconsider their number.",
+             "Aim to summarize their situation so well they say \"That's right.\" It means they feel understood. \"You're right\" usually means they want you to stop talking."],
+      script: "\"How can we make this work for both sides?\"",
+      quiz: [
+        { q: "Which is a calibrated question?", o: ["\"How can we make this work for both sides?\"", "\"Will you take $450?\"", "\"Why won't you budge?\""] },
+        { q: "\"That's right\" versus \"You're right\":", o: ["\"That's right\" means they feel understood", "They mean the same thing", "\"You're right\" is the goal"] },
+        { q: "\"How am I supposed to do that?\" is:", o: ["A polite no that makes them rethink", "Rude", "A sign you'll agree"] } ] } ] },
+  { id: "oh", n: "Objection Handling", src: "Real estate objection playbook", stat: "HDL", lessons: [
+    { id: "oh1", n: "Acknowledge, ask, answer",
+      body: ["Don't argue with an objection. First acknowledge it: agree with the feeling or label it.",
+             "Then ask a question to find the real concern behind it.",
+             "Then answer the real concern with facts. Most first objections are reflexes, not decisions."],
+      script: "\"That's a fair question. What matters most to you: your net, the timing, or less hassle?\"",
+      quiz: [
+        { q: "The right order is:", o: ["Acknowledge, ask, answer", "Answer, argue, close", "Ask, answer, argue"] },
+        { q: "\"Your commission is too high.\" Your first step:", o: ["\"That's a fair question.\"", "\"I'm worth it.\"", "\"Fine, I'll cut it.\""] },
+        { q: "A first objection is often:", o: ["A reflex, not a final decision", "Always final", "A lie"] } ] },
+    { id: "oh2", n: "Price objections",
+      body: ["Move price talks from opinion to objective criteria: recent sales, days on market and list-to-sale ratio.",
+             "Let the data be the bad guy, so it isn't your opinion against theirs.",
+             "Show net proceeds, not just list price. Sellers care about what they walk away with."],
+      script: "\"Let's set both our opinions aside and look at the three closest sales together.\"",
+      quiz: [
+        { q: "A seller wants $40k over the comps. Best response?", o: ["\"Let's look at the three closest sales together.\"", "\"That's crazy.\"", "\"Sure, we'll try it.\""] },
+        { q: "\"Let the data be the bad guy\" means:", o: ["Use market numbers so it isn't your opinion versus theirs", "Blame the market for everything", "Hide bad data"] },
+        { q: "Sellers care most about:", o: ["Their net, not just the list price", "Your marketing photos", "Your awards"] } ] },
+    { id: "oh3", n: "Stall objections",
+      body: ["\"Let me think about it,\" \"Call me later\" and \"Send me info\" usually hide a specific concern.",
+             "For \"think about it\", ask which part they want to think through. For \"call me later\", set an exact date and reason. For \"send info\", ask what would make it useful.",
+             "The goal is never to trap them. It's to find what's really in the way."],
+      script: "\"Of course. Which part do you want to think through? Maybe I can help with it now.\"",
+      quiz: [
+        { q: "\"We need to think about it.\" Best response?", o: ["\"Of course. Which part do you want to think through?\"", "\"What's there to think about?\"", "\"Okay, bye!\""] },
+        { q: "\"Call me in the spring.\" Best response?", o: ["\"Will do. I'll call March 3rd. What should I have ready?\"", "\"Spring's too late.\"", "\"Okay.\""] },
+        { q: "\"Just send me info.\" Best response?", o: ["\"Happy to. What would make it most useful to you?\"", "\"I don't send info.\"", "Send a 40-page PDF"] } ] } ] },
+  { id: "no", n: "Negotiating Offers", src: "Anchoring, trades and walk-away power", stat: "ANC", lessons: [
+    { id: "no1", n: "Anchors",
+      body: ["The first credible number shapes the whole negotiation. Anchor with a specific, researched number backed by evidence.",
+             "Precise numbers like $478,500 sound calculated. Round numbers sound like guesses.",
+             "Don't negotiate against yourself. After you give a number, wait for their counter."],
+      script: "\"Based on Oak Ct at $479 and the renovated kitchen, we're at $478,500.\"",
+      quiz: [
+        { q: "Which number sounds most researched?", o: ["$478,500", "$480,000", "Around $480k"] },
+        { q: "\"Negotiating against yourself\" means:", o: ["Lowering your number before they counter", "Arguing with your client", "Making a counteroffer"] },
+        { q: "A strong anchor needs:", o: ["Evidence, like comps", "A loud voice", "A deadline"] } ] },
+    { id: "no2", n: "Trades, not concessions",
+      body: ["Never give something for nothing. Every concession should buy something back: speed, certainty or better terms.",
+             "Trade things that are cheap for you and valuable to them: a rent-back, the closing date, furniture.",
+             "Don't split the difference by reflex. It rewards whoever anchored more extremely."],
+      script: "\"If my sellers do that, can your buyers close in 21 days?\"",
+      quiz: [
+        { q: "They ask for $5k off. Best response?", o: ["\"If we do that, can you close in 21 days?\"", "\"Okay.\"", "\"No.\""] },
+        { q: "A good trade item is:", o: ["Cheap for you, valuable to them", "Expensive for both sides", "Worthless to both sides"] },
+        { q: "Why not split the difference by reflex?", o: ["It rewards whoever anchored more extremely", "It's illegal", "It's always fair"] } ] },
+    { id: "no3", n: "Ackerman steps and your BATNA",
+      body: ["Know your BATNA, your best alternative if this deal fails, before the call. It tells you when to walk away and keeps you calm.",
+             "Plan offers that rise in shrinking steps toward your target. Shrinking steps signal you're near your limit.",
+             "End on a precise number plus a non-money item to show you're done."],
+      script: "\"They can do $401,750, and they'll drop the home warranty request.\"",
+      quiz: [
+        { q: "Your BATNA is:", o: ["Your best alternative if this deal fails", "Your first offer", "Their bottom line"] },
+        { q: "Ackerman-style steps should:", o: ["Get smaller as you go", "Get bigger", "Stay the same"] },
+        { q: "Ending on $401,750 plus a non-money item signals:", o: ["You've reached your limit", "You're flexible", "You're guessing"] } ] } ] }
+];
+
+function renderAcademy() {
+  const all = COURSES.flatMap(c => c.lessons);
+  $("classCount").textContent = all.filter(l => S.classes[l.id]).length + " / " + all.length + " passed";
+  $("academy").innerHTML = COURSES.map(c => `<div class="course"><h3>${c.n}</h3><div class="src">${c.src} · trains ${STATS.find(x => x.k === c.stat).n}</div><div class="list">` +
+    c.lessons.map((l, i) => {
+      const open = i === 0 || S.classes[c.lessons[i - 1].id], done = S.classes[l.id];
+      return `<button class="card" data-l="${l.id}" ${open ? "" : "disabled"}><div class="gr" style="color:${done ? "var(--good)" : "var(--accent)"}">${done ? "✓" : i + 1}</div><div><b>${l.n}</b><small>${done ? "Passed · review anytime" : open ? "Read, then take a 3-question quiz" : "Pass the class before this to unlock"}</small></div><span class="lock">${done ? "" : open ? "+60 XP" : "Locked"}</span></button>`;
+    }).join("") + `</div></div>`).join("");
+  document.querySelectorAll("#academy .card").forEach(b => b.onclick = () => openLesson(b.dataset.l));
+}
+function findLesson(id) { for (const c of COURSES) { const l = c.lessons.find(x => x.id === id); if (l) return [c, l]; } }
+function openLesson(id) {
+  const [c, l] = findLesson(id);
+  QL = l; QL.course = c;
+  $("lCourse").textContent = c.n;
+  $("lTitle").textContent = l.n;
+  $("lBody").innerHTML = l.body.map(p => `<p>${esc(p)}</p>`).join("") + `<div class="script"><b>Try saying</b>${esc(l.script)}</div>`;
+  show("lesson");
+}
+$("quizBtn").onclick = () => startDrill("quiz");
+$("lessonBack").onclick = () => { renderHome(); show("home"); };
+
+function endQuiz() {
+  const n = dItems.length, pass = dCorrect >= 2, first = pass && !S.classes[QL.id];
+  const xp = pass ? (first ? 60 : 15) : 5;
+  const gains = first ? { [QL.course.stat]: 2 } : {};
+  if (first) { S.classes[QL.id] = true; train(QL.course.stat, 2); sys("Class Passed", `${QL.n}. +2 ${STATS.find(x => x.k === QL.course.stat).n}.`); }
+  record("quiz", QL.id, dCorrect / n * 100);
+  gainXP(xp); checkTitles(); save();
+  $("rHead").textContent = QL.course.n;
+  $("rGrade").textContent = pass ? "PASS" : "RETRY";
+  $("rVerdict").textContent = pass ? (first ? "Class passed. The next class is unlocked." : "Passed again. Repetition builds the habit.") : "You need 2 of 3. Review the lesson and try again.";
+  $("rA").textContent = dCorrect; $("rAl").textContent = "Correct";
+  $("rB").textContent = n - dCorrect; $("rBl").textContent = "Missed";
+  $("rXP").textContent = "+" + xp;
+  showGains(gains);
+  $("rLessonHead").textContent = "Key points";
+  $("rLessons").innerHTML = QL.body.map(p => `<li>${esc(p)}</li>`).join("");
+  $("retryBtn").textContent = pass ? "Review the lesson" : "Reread and retry";
+  const id = QL.id; retry = () => openLesson(id);
   show("results"); flushSys();
 }
 
@@ -1298,6 +1795,12 @@ function showSummary(name) {
     loginOffline("Couldn't load your account. You can still play, and progress will be saved on this device.");
   }
 })();
+document.querySelectorAll(".tab").forEach(b => b.onclick = () => setTab(b.dataset.tab));
+function setTab(t) {
+  document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
+  document.querySelectorAll(".pane").forEach(p => p.classList.toggle("hidden", p.dataset.pane !== t));
+  window.scrollTo(0, 0);
+}
 $("enterBtn").onclick = () => { renderHome(); show("home"); subscribeBoard(); flushSys(); };
 $("guestBtn").onclick = () => { loginDone = true; cloud = false; setAcct("Playing as a guest. Progress is saved on this device only."); renderHome(); show("home"); };
 

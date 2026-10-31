@@ -13,6 +13,19 @@ Play it at the claude.ai link and sign in: progress saves to your account, works
 - **Daily quest:** Clear a gate, get 5 vocab answers right and handle 3 objections, for bonus XP, stat points and a streak.
 - **Titles:** Unlock titles such as Silver Tongue, Wall Breaker and S-Rank Negotiator.
 
+## Cold Call Arena
+
+Endless practice dials. Each call randomly picks one of six lead types (expired listing, FSBO, just-sold neighbor, past client, old internet lead, absentee owner) and one of four personalities (friendly, rushed, skeptical, hostile). Some calls go to voicemail. The Arena tracks your dials, conversations, appointments and talk-to-appointment rate.
+
+## Academy
+
+Four courses of three classes each. Each class is a short lesson followed by a 3-question quiz (pass with 2 of 3), and passing one unlocks the next.
+
+- **Cold Calling Fundamentals:** the mindset of the dial, openers, booking the appointment
+- **Tactical Empathy:** mirrors, labels and accusation audits, calibrated questions
+- **Objection Handling:** acknowledge-ask-answer, price objections, stall objections
+- **Negotiating Offers:** anchors, trades not concessions, Ackerman steps and BATNA
+
 ## Gates (live calls)
 
 | Rank | Opens at | Call | Trains |
